@@ -1,0 +1,8 @@
+<resources>
+    <string name="app_name">HearU</string>
+    <string name="welcome">Selamat Datang</string>
+    <string name="welcome_desc">Selamat datang di HearU! Di sini, kamu memiliki ruang aman untuk bercerita, mengungkapkan isi hati, atau sekadar berbagi tanpa rasa takut dihakimi. Ingat, kamu tidak sendirian. HearU hadir untuk mendengarkan, menemanimu, dan memberi tempat di mana setiap cerita berarti.</string>
+    <string name="masuk">Masuk</string>
+    <string name="daftar">Daftar</string>
+    <string name="back">Kembali</string>
+</resources>
