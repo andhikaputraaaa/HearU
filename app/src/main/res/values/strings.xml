@@ -12,6 +12,14 @@
     <string name="next">Next</string>
     <string name="previous">Previous</string>
 
+    <string name="username">Username</string>
+    <string name="name">Nama</string>
+    <string name="text">Hakuna Matata Hakuna Matata Hakuna Matata</string>
+    <string name="time">23.59</string>
+    <string name="date">5 Mei 2005</string>
+    <string name="likes">100</string>
+    <string name="comments">50</string>
+
     <string name="lorem_ipsum">
         Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nam in scelerisque sem. Mauris
         volutpat, dolor id interdum ullamcorper, risus dolor egestas lectus, sit amet mattis purus

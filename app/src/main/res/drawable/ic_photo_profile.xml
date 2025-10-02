@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item>
+        <layer-list>
+            <!-- Background circle -->
+            <item>
+                <shape android:shape="oval">
+                    <solid android:color="#E0E0E0" />
+                </shape>
+            </item>
+
+            <!-- Person icon placeholder -->
+            <item android:gravity="center">
+                <shape android:shape="oval">
+                    <solid android:color="#BDBDBD" />
+                    <size
+                        android:width="60dp"
+                        android:height="60dp" />
+                </shape>
+            </item>
+
+            <!-- Head circle -->
+            <item
+                android:gravity="center|top"
+                android:top="15dp">
+                <shape android:shape="oval">
+                    <solid android:color="#E0E0E0" />
+                    <size
+                        android:width="18dp"
+                        android:height="18dp" />
+                </shape>
+            </item>
+
+            <!-- Body shape -->
+            <item
+                android:gravity="center|bottom"
+                android:bottom="10dp">
+                <shape android:shape="oval">
+                    <solid android:color="#E0E0E0" />
+                    <size
+                        android:width="28dp"
+                        android:height="20dp" />
+                </shape>
+            </item>
+        </layer-list>
+    </item>
+</selector>
