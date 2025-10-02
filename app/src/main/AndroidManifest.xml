@@ -12,6 +12,13 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.HearUApp">
         <activity
+            android:name=".MasukActivity"
+            android:exported="false" />
+        <activity
+            android:name=".DaftarActivity"
+            android:exported="false"
+            android:theme="@style/Theme.HearUApp" />
+        <activity
             android:name=".MainActivity"
             android:exported="true">
             <intent-filter>
