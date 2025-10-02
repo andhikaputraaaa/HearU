@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1045620073973",
+    "project_id": "hearu-b39f1",
+    "storage_bucket": "hearu-b39f1.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1045620073973:android:a83da59c88ee17a6e62cbc",
+        "android_client_info": {
+          "package_name": "com.innovape.hearuapp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBH_JPjOdgMxpduJbzPanpifCQH9sFFYlQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -12,7 +12,7 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.HearUApp">
         <activity
-            android:name=".Home"
+            android:name=".HomeActivity"
             android:exported="false" />
         <activity
             android:name=".MasukActivity"
