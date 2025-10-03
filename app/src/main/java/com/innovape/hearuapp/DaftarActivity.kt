@@ -21,6 +21,10 @@ class DaftarActivity : AppCompatActivity() {
         binding = ActivityDaftarBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        binding.btnBack.setOnClickListener {
+            onBackPressed()
+        }
+
         auth = FirebaseAuth.getInstance()
         db = FirebaseFirestore.getInstance()
 

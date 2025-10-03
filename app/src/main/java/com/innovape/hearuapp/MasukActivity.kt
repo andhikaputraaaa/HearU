@@ -21,6 +21,10 @@ class MasukActivity : AppCompatActivity() {
 
         auth = FirebaseAuth.getInstance()
 
+        binding.btnBack.setOnClickListener {
+            onBackPressed()
+        }
+
         binding.btnMasuk.setOnClickListener {
             val email = binding.etEmail.text.toString().trim()
             val password = binding.etPassword.text.toString().trim()
@@ -32,6 +36,7 @@ class MasukActivity : AppCompatActivity() {
 
             loginUser(email, password)
         }
+
     }
 
     private fun loginUser(email: String, password: String) {
