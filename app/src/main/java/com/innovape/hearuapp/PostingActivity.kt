@@ -1,19 +1,18 @@
 package com.innovape.hearuapp
 
-import android.content.Intent
 import android.os.Bundle
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
-import com.innovape.hearuapp.databinding.ActivityHomeBinding
+import com.innovape.hearuapp.databinding.ActivityPostingBinding
 
-class HomeActivity : AppCompatActivity() {
-    private lateinit var binding: ActivityHomeBinding
+class PostingActivity : AppCompatActivity() {
+    private lateinit var binding: ActivityPostingBinding
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        binding = ActivityHomeBinding.inflate(layoutInflater)
+        binding = ActivityPostingBinding.inflate(layoutInflater)
         setContentView(binding.root)
     }
 }
