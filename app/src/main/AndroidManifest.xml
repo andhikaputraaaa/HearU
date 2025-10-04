@@ -11,7 +11,9 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.HearUApp">
-
+        <activity
+            android:name=".HomeActivity"
+            android:exported="false" />
         <activity
             android:name=".PostingActivity"
             android:exported="false" />
@@ -23,8 +25,8 @@
             android:exported="false"
             android:theme="@style/Theme.HearUApp" />
         <activity
-            android:name=".HomeActivity"
-            android:exported="false"/>
+            android:name=".EditProfilActivity"
+            android:exported="false" />
         <activity
             android:name=".MainActivity"
             android:exported="true">
