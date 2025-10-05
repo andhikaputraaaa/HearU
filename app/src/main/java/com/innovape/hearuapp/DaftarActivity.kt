@@ -45,10 +45,10 @@ class DaftarActivity : AppCompatActivity() {
             }
         }
 
-        binding.btnGoogleSignIn.setOnClickListener {
-            val intent = Intent(this, MasukActivity::class.java)
-            startActivity(intent)
-        }
+//        binding.btnGoogleSignIn.setOnClickListener {
+//            val intent = Intent(this, MasukActivity::class.java)
+//            startActivity(intent)
+//        }
 
     }
 

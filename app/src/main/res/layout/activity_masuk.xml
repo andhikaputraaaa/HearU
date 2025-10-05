@@ -132,7 +132,7 @@
 
                 <!-- Lupa Password Text -->
                 <TextView
-                    android:id="@+id/tvForgotPassword"
+                    android:id="@+id/tvLupaPassword"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_gravity="end"

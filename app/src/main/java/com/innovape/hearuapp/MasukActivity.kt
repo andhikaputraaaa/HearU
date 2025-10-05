@@ -60,6 +60,32 @@ class MasukActivity : AppCompatActivity() {
         binding.tvDaftar.setOnClickListener {
             startActivity(Intent(this, DaftarActivity::class.java))
         }
+
+        binding.tvLupaPassword.setOnClickListener {
+            val email = binding.etEmail.text.toString().trim()
+
+            if (email.isEmpty()) {
+                Toast.makeText(this, "Masukkan email terlebih dahulu.", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+
+            FirebaseAuth.getInstance().sendPasswordResetEmail(email)
+                .addOnSuccessListener {
+                    Toast.makeText(
+                        this,
+                        "Link reset password telah dikirim ke $email",
+                        Toast.LENGTH_LONG
+                    ).show()
+                }
+                .addOnFailureListener { e ->
+                    Toast.makeText(
+                        this,
+                        "Gagal mengirim email: ${e.message}",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+        }
+
     }
 
     private fun loginUser(email: String, password: String) {
