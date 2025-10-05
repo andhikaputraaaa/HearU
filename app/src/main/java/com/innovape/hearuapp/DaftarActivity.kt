@@ -25,6 +25,11 @@ class DaftarActivity : AppCompatActivity() {
             onBackPressed()
         }
 
+        binding.tvMasuk.setOnClickListener {
+            val intent = Intent(this, MasukActivity::class.java)
+            startActivity(intent)
+        }
+
         auth = FirebaseAuth.getInstance()
         db = FirebaseFirestore.getInstance()
 
@@ -38,6 +43,11 @@ class DaftarActivity : AppCompatActivity() {
             } else {
                 registerUser(username, email, password)
             }
+        }
+
+        binding.btnGoogleSignIn.setOnClickListener {
+            val intent = Intent(this, MasukActivity::class.java)
+            startActivity(intent)
         }
 
     }

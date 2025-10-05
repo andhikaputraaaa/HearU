@@ -12,7 +12,20 @@
           "package_name": "com.innovape.hearuapp"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "1045620073973-sf9k2uahru01gm9vk8tk6u24l4l7a93l.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.innovape.hearuapp",
+            "certificate_hash": "ce5a8a8f5f9ed18bef174304d92d73f3f18610cb"
+          }
+        },
+        {
+          "client_id": "1045620073973-77737jqhmcdncd22dcv5v0as7rpmsg8f.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyBH_JPjOdgMxpduJbzPanpifCQH9sFFYlQ"
@@ -20,7 +33,12 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1045620073973-77737jqhmcdncd22dcv5v0as7rpmsg8f.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
         }
       }
     }

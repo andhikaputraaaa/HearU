@@ -1,5 +1,7 @@
 package com.innovape.hearuapp.ui.adapter
 
+import android.animation.AnimatorSet
+import android.animation.ObjectAnimator
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -61,6 +63,7 @@ class PostAdapter(
         )
 
         holder.ivLike.setOnClickListener {
+            animateLikeButton(holder.ivLike)
             post.id?.let { postId ->
                 onLikeClick(postId, liked)
             }
@@ -78,4 +81,22 @@ class PostAdapter(
     }
 
     override fun getItemCount(): Int = posts.size
+
+    private fun animateLikeButton(view: ImageView) {
+        val scaleUpX = ObjectAnimator.ofFloat(view, "scaleX", 1f, 1.3f)
+        val scaleUpY = ObjectAnimator.ofFloat(view, "scaleY", 1f, 1.3f)
+        val scaleDownX = ObjectAnimator.ofFloat(view, "scaleX", 1.3f, 1f)
+        val scaleDownY = ObjectAnimator.ofFloat(view, "scaleY", 1.3f, 1f)
+
+        scaleUpX.duration = 100
+        scaleUpY.duration = 100
+        scaleDownX.duration = 100
+        scaleDownY.duration = 100
+
+        val animatorSet = AnimatorSet()
+        animatorSet.play(scaleUpX).with(scaleUpY)
+        animatorSet.play(scaleDownX).with(scaleDownY).after(scaleUpX)
+        animatorSet.start()
+    }
+
 }

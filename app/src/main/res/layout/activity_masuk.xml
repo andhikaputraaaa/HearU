@@ -175,12 +175,18 @@
                     android:textColor="@color/black"
                     android:textSize="14sp"
                     app:icon="@drawable/ic_google"
-                    app:iconGravity="textStart"
-                    app:iconPadding="8dp"
-                    app:backgroundTint="@android:color/white"
-                    app:strokeColor="#E0E0E0"
+                    app:iconGravity="start"
+                    app:iconPadding="12dp"
+                    app:iconTint="@null"
+                    android:backgroundTint="@color/white"
+                    app:strokeColor="#E5E5E5"
                     app:strokeWidth="1dp"
                     app:cornerRadius="28dp"
+                    android:paddingStart="24dp"
+                    android:paddingEnd="24dp"
+                    app:iconSize="20dp"
+                    android:elevation="2dp"
+                    app:elevation="2dp"
                     android:layout_marginBottom="24dp" />
 
                 <!-- Don't Have Account Text -->
