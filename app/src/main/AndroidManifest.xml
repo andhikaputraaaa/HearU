@@ -12,7 +12,11 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.HearUApp">
         <activity
+<<<<<<< HEAD
             android:name=".DetailPostActivity"
+=======
+            android:name=".HomeActivity"
+>>>>>>> 38525bdeab8ae4dc12a9468011382eb725750052
             android:exported="false" />
         <activity
             android:name=".PostingActivity"
@@ -25,7 +29,11 @@
             android:exported="false"
             android:theme="@style/Theme.HearUApp" />
         <activity
+<<<<<<< HEAD
             android:name=".HomeActivity"
+=======
+            android:name=".EditProfilActivity"
+>>>>>>> 38525bdeab8ae4dc12a9468011382eb725750052
             android:exported="false" />
         <activity
             android:name=".MainActivity"
