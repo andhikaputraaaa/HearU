@@ -14,16 +14,21 @@ import java.util.*
 
 class PostAdapter(
     private val posts: List<Post>,
-    private val onLikeClick: (postId: String, liked: Boolean) -> Unit
+    private val onLikeClick: (postId: String, liked: Boolean) -> Unit,
+    private val onCommentClick: (postId: String) -> Unit
 ) : RecyclerView.Adapter<PostAdapter.PostViewHolder>() {
 
     inner class PostViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val ivProfile: ImageView = itemView.findViewById(R.id.ivProfile)
         val username: TextView = itemView.findViewById(R.id.tvUsername)
+        val name: TextView = itemView.findViewById(R.id.tvName)
         val content: TextView = itemView.findViewById(R.id.tvContent)
         val timestamp: TextView = itemView.findViewById(R.id.tvTimestamp)
         val ivLike: ImageView = itemView.findViewById(R.id.ivLike)
         val tvLikeCount: TextView = itemView.findViewById(R.id.tvLikeCount)
+        val ivComment: ImageView = itemView.findViewById(R.id.ivComment)
+
+        val tvCommentCount: TextView = itemView.findViewById(R.id.tvCommentCount)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): PostViewHolder {
@@ -41,8 +46,14 @@ class PostAdapter(
         } else {
             "@${post.username}"
         }
+        holder.name.text = if (post.isAnonymous) {
+            "Anonim"
+        } else {
+            "@${post.username}"
+        }
         holder.content.text = post.content
         holder.tvLikeCount.text = post.likes.size.toString()
+        holder.tvCommentCount.text = post.commentCount.toString()
 
         val liked = currentUser?.uid in post.likes
         holder.ivLike.setImageResource(
@@ -53,6 +64,10 @@ class PostAdapter(
             post.id?.let { postId ->
                 onLikeClick(postId, liked)
             }
+        }
+
+        holder.ivComment.setOnClickListener {
+            post.id?.let { onCommentClick(it) }
         }
 
         val formattedDate = post.timestamp?.toDate()?.let { date ->

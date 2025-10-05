@@ -3,6 +3,7 @@ package com.innovape.hearuapp
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
+import android.widget.ImageView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -10,6 +11,8 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
 import com.innovape.hearuapp.data.model.Post
+import com.innovape.hearuapp.databinding.ActivityDetailPostBinding
+import com.innovape.hearuapp.databinding.ActivityHomeBinding
 import com.innovape.hearuapp.ui.adapter.PostAdapter
 
 class HomeActivity : AppCompatActivity(), Navbar.OnNavigationClickListener {
@@ -26,9 +29,14 @@ class HomeActivity : AppCompatActivity(), Navbar.OnNavigationClickListener {
 
         recyclerView = findViewById(R.id.recyclerViewPosts)
         recyclerView.layoutManager = LinearLayoutManager(this)
-        postAdapter = PostAdapter(postList) { postId, liked ->
-            toggleLike(postId, liked)
-        }
+        postAdapter = PostAdapter(postList,
+            onLikeClick = { postId, liked -> toggleLike(postId, liked) },
+            onCommentClick = { postId ->
+                val i = Intent(this, DetailPostActivity::class.java)
+                i.putExtra("postId", postId)
+                startActivity(i)
+            }
+        )
         recyclerView.adapter = postAdapter
 
         loadPosts()
