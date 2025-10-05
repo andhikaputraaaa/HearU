@@ -1,0 +1,197 @@
+package com.innovape.hearuapp
+
+import android.content.Intent
+import android.os.Bundle
+import android.util.Log
+import android.widget.ImageView
+import android.widget.Toast
+import androidx.activity.enableEdgeToEdge
+import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.Query
+import com.innovape.hearuapp.data.model.Post
+import com.innovape.hearuapp.ui.adapter.PostAdapter
+import kotlin.collections.remove
+import kotlin.text.clear
+import kotlin.text.get
+import android.widget.TextView
+
+class ProfileActivity : AppCompatActivity(), Navbar.OnNavigationClickListener {
+
+    private lateinit var recyclerView: RecyclerView
+    private lateinit var postAdapter: PostAdapter
+    private val postList = mutableListOf<Post>()
+    private lateinit var auth: FirebaseAuth
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContentView(R.layout.activity_profile)
+
+        auth = FirebaseAuth.getInstance()
+
+        loadUserProfile()
+
+        val bottomNavFragment = supportFragmentManager.findFragmentById(R.id.bottom_nav_container) as Navbar
+        bottomNavFragment.setOnNavigationClickListener(this)
+
+        // Settings button click listener
+        val settingsButton = findViewById<ImageView>(R.id.iv_settings)
+        settingsButton.setOnClickListener {
+            val intent = Intent(this, EditProfilActivity::class.java)
+            startActivity(intent)
+        }
+
+        recyclerView = findViewById(R.id.recyclerViewPosts)
+        recyclerView.layoutManager = LinearLayoutManager(this)
+        postAdapter = PostAdapter(postList,
+            onLikeClick = { postId, liked -> toggleLike(postId, liked) },
+            onCommentClick = { postId ->
+                val i = Intent(this, DetailPostActivity::class.java)
+                i.putExtra("postId", postId)
+                startActivity(i)
+            }
+        )
+        recyclerView.adapter = postAdapter
+
+        loadUserPosts()
+    }
+
+    private fun loadUserPosts() {
+        val currentUser = auth.currentUser
+        if (currentUser == null) {
+            Toast.makeText(this, "User not logged in", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        val db = FirebaseFirestore.getInstance()
+        val userId = currentUser.uid
+
+        db.collection("posts")
+            .whereEqualTo("userId", userId)
+            .whereEqualTo("isAnonymous", false)
+            .orderBy("timestamp", Query.Direction.DESCENDING)
+            .addSnapshotListener { snapshot, e ->
+                if (e != null) {
+                    Log.w("ProfileActivity", "Listen failed.", e)
+                    return@addSnapshotListener
+                }
+
+                if (snapshot != null) {
+                    postList.clear()
+                    for (doc in snapshot.documents) {
+                        try {
+                            val post = doc.toObject(Post::class.java)
+                            if (post != null) {
+                                post.id = doc.id // Set the document ID
+                                postList.add(post)
+                            }
+                        } catch (ex: Exception) {
+                            Log.e("ProfileActivity", "Error parsing post: ${doc.data}", ex)
+                        }
+                    }
+                    postAdapter.notifyDataSetChanged()
+                }
+            }
+        Log.d("ProfileActivity", "Loading non-anonymous posts for user: $userId")
+    }
+
+    private fun toggleLike(postId: String, liked: Boolean) {
+        val currentUser = auth.currentUser ?: return
+        val db = FirebaseFirestore.getInstance()
+        val postRef = db.collection("posts").document(postId)
+
+        // Find the post in local list and update it immediately
+        val postIndex = postList.indexOfFirst { it.id == postId }
+        if (postIndex != -1) {
+            val post = postList[postIndex]
+            if (liked) {
+                post.likes.remove(currentUser.uid)
+            } else {
+                post.likes.add(currentUser.uid)
+            }
+            postAdapter.notifyItemChanged(postIndex)
+        }
+
+        // Update Firestore
+        db.runTransaction { transaction ->
+            val snapshot = transaction.get(postRef)
+            val likes = snapshot.get("likes") as? MutableList<String> ?: mutableListOf()
+
+            if (liked) {
+                likes.remove(currentUser.uid)
+            } else {
+                likes.add(currentUser.uid)
+            }
+
+            transaction.update(postRef, "likes", likes)
+        }.addOnFailureListener { exception ->
+            // Revert local changes if Firestore update fails
+            if (postIndex != -1) {
+                val post = postList[postIndex]
+                if (liked) {
+                    post.likes.add(currentUser.uid)
+                } else {
+                    post.likes.remove(currentUser.uid)
+                }
+                postAdapter.notifyItemChanged(postIndex)
+            }
+            Log.e("ProfileActivity", "Error updating like", exception)
+        }
+    }
+
+    override fun onHomeClick() {
+        val intent = Intent(this, HomeActivity::class.java)
+        startActivity(intent)
+    }
+
+    override fun onEditClick() {
+        val intent = Intent(this, PostingActivity::class.java)
+        startActivity(intent)
+    }
+
+    override fun onProfileClick() {
+        val bottomNavFragment = supportFragmentManager.findFragmentById(R.id.bottom_nav_container) as Navbar
+        bottomNavFragment.setActiveItem(2)
+    }
+
+    override fun onResume() {
+        super.onResume()
+        // Reload posts when returning to this activity
+        loadUserPosts()
+        loadUserProfile()
+    }
+
+    private fun loadUserProfile() {
+        val currentUser = auth.currentUser
+        if (currentUser == null) {
+            Toast.makeText(this, "User not logged in", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        val db = FirebaseFirestore.getInstance()
+        val userId = currentUser.uid
+
+        db.collection("users").document(userId)
+            .get()
+            .addOnSuccessListener { document ->
+                if (document != null && document.exists()) {
+                    val username = document.getString("username") ?: "Unknown User"
+                    val name = document.getString("name") ?: username
+
+                    findViewById<TextView>(R.id.tv_username).text = name
+                    findViewById<TextView>(R.id.tv_handle).text = "@$username"
+                } else {
+                    Log.d("ProfileActivity", "No such user document")
+                }
+            }
+            .addOnFailureListener { exception ->
+                Log.d("ProfileActivity", "Get user failed with ", exception)
+                Toast.makeText(this, "Failed to load profile", Toast.LENGTH_SHORT).show()
+            }
+    }
+}

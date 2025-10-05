@@ -53,8 +53,8 @@ class HomeActivity : AppCompatActivity(), Navbar.OnNavigationClickListener {
     }
 
     override fun onProfileClick() {
-//        val intent = Intent(this, ProfileActivity::class.java)
-//        startActivity(intent)
+        val intent = Intent(this, ProfileActivity::class.java)
+        startActivity(intent)
     }
 
     private fun loadPosts() {
