@@ -8,6 +8,7 @@ import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
+import com.bumptech.glide.Glide
 import com.google.firebase.auth.FirebaseAuth
 import com.innovape.hearuapp.R
 import com.innovape.hearuapp.data.model.Post
@@ -51,11 +52,22 @@ class PostAdapter(
         holder.name.text = if (post.isAnonymous) {
             "Anonim"
         } else {
-            "@${post.username}"
+            "${post.name}"
         }
         holder.content.text = post.content
         holder.tvLikeCount.text = post.likes.size.toString()
         holder.tvCommentCount.text = post.commentCount.toString()
+
+        if (post.isAnonymous || post.profileImageUrl.isEmpty()) {
+            holder.ivProfile.setImageResource(R.drawable.ic_profile_placeholder)
+        } else {
+            Glide.with(holder.itemView.context)
+                .load(post.profileImageUrl)
+                .placeholder(R.drawable.ic_profile_placeholder)
+                .error(R.drawable.ic_profile_placeholder)
+                .circleCrop()
+                .into(holder.ivProfile)
+        }
 
         val liked = currentUser?.uid in post.likes
         holder.ivLike.setImageResource(

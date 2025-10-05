@@ -11,9 +11,12 @@ import android.widget.ImageView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
+import com.bumptech.glide.Glide
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.WriteBatch
 import com.google.firebase.storage.FirebaseStorage
+import kotlin.toString
 
 class EditProfilActivity : AppCompatActivity() {
 
@@ -115,14 +118,44 @@ class EditProfilActivity : AppCompatActivity() {
     private fun loadCurrentUserData() {
         val currentUser = auth.currentUser ?: return
 
+        // Show loading indicator
+        Toast.makeText(this, "Loading profile...", Toast.LENGTH_SHORT).show()
+
         db.collection("users").document(currentUser.uid)
             .get()
             .addOnSuccessListener { document ->
                 if (document.exists()) {
+                    // Load text data
                     etNama.setText(document.getString("name") ?: "")
                     etUsername.setText(document.getString("username") ?: "")
                     etEmail.setText(currentUser.email ?: "")
-                    // Don't populate password for security
+                    
+                    // Load profile image
+                    val profileImageUrl = document.getString("profileImageUrl")
+                    if (!profileImageUrl.isNullOrEmpty()) {
+                        Glide.with(this)
+                            .load(profileImageUrl)
+                            .placeholder(R.drawable.ic_profile_placeholder) // Tambahkan placeholder
+                            .error(R.drawable.ic_profile_placeholder)
+                            .circleCrop() // Optional: membuat gambar bulat
+                            .into(ivProfile)
+                    }
+                    
+                    // Load banner image
+                    val bannerImageUrl = document.getString("bannerImageUrl")
+                    if (!bannerImageUrl.isNullOrEmpty()) {
+                        Glide.with(this)
+                            .load(bannerImageUrl)
+                            .placeholder(R.drawable.ic_banner_placeholder) // Tambahkan placeholder
+                            .error(R.drawable.ic_banner_placeholder)
+                            .centerCrop()
+                            .into(ivBanner)
+                    }
+                    
+                    // Set placeholder for password
+                    etPassword.hint = "Leave empty to keep current password"
+                } else {
+                    Toast.makeText(this, "Profile data not found", Toast.LENGTH_SHORT).show()
                 }
             }
             .addOnFailureListener { e ->
@@ -143,23 +176,121 @@ class EditProfilActivity : AppCompatActivity() {
             return
         }
 
-        // Update user data in Firestore
+        // Jika ada gambar baru, upload dulu
+        if (selectedProfileImageUri != null || selectedBannerImageUri != null) {
+            uploadImages(
+                userId = currentUser.uid,
+                name = name,
+                username = username,
+                email = email,
+                password = password
+            )
+        } else {
+            updateUserData(currentUser.uid, name, username, email, password, null, null)
+        }
+    }
+
+    private fun uploadImages(
+        userId: String,
+        name: String,
+        username: String,
+        email: String,
+        password: String
+    ) {
+        val storageRoot = storage.reference
+        val tasks = mutableListOf<com.google.android.gms.tasks.Task<android.net.Uri>>()
+        var profileImageUrl: String? = null
+        var bannerImageUrl: String? = null
+
+        // Profile
+        selectedProfileImageUri?.let { uri ->
+            val ref = storageRoot.child("profile_images/$userId/profile_${System.currentTimeMillis()}.jpg")
+            val task = ref.putFile(uri)
+                .continueWithTask { putTask ->
+                    if (!putTask.isSuccessful) throw putTask.exception ?: Exception("Upload profile failed")
+                    ref.downloadUrl
+                }.addOnSuccessListener { download ->
+                    profileImageUrl = download.toString()
+                }.addOnFailureListener { e ->
+                    Toast.makeText(this, "Upload profile fail: ${e.message}", Toast.LENGTH_SHORT).show()
+                }
+            tasks.add(task)
+        }
+
+        // Banner
+        selectedBannerImageUri?.let { uri ->
+            val ref = storageRoot.child("banner_images/$userId/banner_${System.currentTimeMillis()}.jpg")
+            val task = ref.putFile(uri)
+                .continueWithTask { putTask ->
+                    if (!putTask.isSuccessful) throw putTask.exception ?: Exception("Upload banner failed")
+                    ref.downloadUrl
+                }.addOnSuccessListener { download ->
+                    bannerImageUrl = download.toString()
+                }.addOnFailureListener { e ->
+                    Toast.makeText(this, "Upload banner fail: ${e.message}", Toast.LENGTH_SHORT).show()
+                }
+            tasks.add(task)
+        }
+
+        if (tasks.isEmpty()) {
+            updateUserData(userId, name, username, email, password, null, null)
+            return
+        }
+
+        com.google.android.gms.tasks.Tasks.whenAllComplete(tasks)
+            .addOnSuccessListener {
+                // Jika salah satu gagal, variabel mungkin null -> tetap lanjut tanpa gambar itu
+                updateUserData(
+                    userId = userId,
+                    name = name,
+                    username = username,
+                    email = email,
+                    password = password,
+                    profileImageUrl = profileImageUrl,
+                    bannerImageUrl = bannerImageUrl
+                )
+            }
+            .addOnFailureListener { e ->
+                Toast.makeText(this, "Image upload error: ${e.message}", Toast.LENGTH_SHORT).show()
+                // Tetap update data text tanpa gambar baru
+                updateUserData(
+                    userId, name, username, email, password,
+                    profileImageUrl, bannerImageUrl
+                )
+            }
+    }
+
+    private fun updateUserData(userId: String, name: String, username: String, email: String, password: String, 
+                               profileImageUrl: String?, bannerImageUrl: String?) {
         val userUpdates = hashMapOf<String, Any>(
             "name" to name,
             "username" to username
         )
 
-        db.collection("users").document(currentUser.uid)
+        profileImageUrl?.let { userUpdates["profileImageUrl"] = it }
+        bannerImageUrl?.let { userUpdates["bannerImageUrl"] = it }
+
+        db.collection("users").document(userId)
             .update(userUpdates)
             .addOnSuccessListener {
-                // Update email if changed
-                if (email != currentUser.email) {
-                    currentUser.updateEmail(email)
-                        .addOnSuccessListener {
+                // Propagate perubahan ke semua posting user
+                updatePostsUserInfo(
+                    userId = userId,
+                    name = name,
+                    username = username,
+                    profileImageUrl = profileImageUrl,
+                    bannerImageUrl = bannerImageUrl
+                )
+
+                val currentUser = auth.currentUser
+                if (email != currentUser?.email) {
+                    currentUser?.updateEmail(email)
+                        ?.addOnSuccessListener {
                             updatePasswordIfNeeded(password)
                         }
-                        .addOnFailureListener { e ->
+                        ?.addOnFailureListener { e ->
                             Toast.makeText(this, "Error updating email: ${e.message}", Toast.LENGTH_SHORT).show()
+                            updatePasswordIfNeeded(password)
                         }
                 } else {
                     updatePasswordIfNeeded(password)
@@ -170,6 +301,62 @@ class EditProfilActivity : AppCompatActivity() {
             }
     }
 
+    private fun updatePostsUserInfo(
+        userId: String,
+        name: String,
+        username: String,
+        profileImageUrl: String?,
+        bannerImageUrl: String?
+    ) {
+        db.collection("posts")
+            .whereEqualTo("userId", userId)
+            .get()
+            .addOnSuccessListener { querySnapshot ->
+                if (querySnapshot.isEmpty) return@addOnSuccessListener
+
+                val docs = querySnapshot.documents
+                val batches = mutableListOf<WriteBatch>()
+                var batch = db.batch()
+                var opCount = 0
+
+                docs.forEach { doc ->
+                    val ref = doc.reference
+                    val updates = mutableMapOf<String, Any>(
+                        "name" to name,
+                        "username" to username
+                    )
+                    profileImageUrl?.let { updates["profileImageUrl"] = it }
+                    bannerImageUrl?.let { updates["bannerImageUrl"] = it }
+
+                    batch.update(ref, updates)
+                    opCount++
+                    if (opCount == 450) { // safeguard (limit 500/ batch)
+                        batches.add(batch)
+                        batch = db.batch()
+                        opCount = 0
+                    }
+                }
+                if (opCount > 0) batches.add(batch)
+
+                commitPostBatchesSequentially(batches.iterator())
+            }
+            .addOnFailureListener { e ->
+                Toast.makeText(this, "Failed updating posts: ${e.message}", Toast.LENGTH_SHORT).show()
+            }
+    }
+
+    private fun commitPostBatchesSequentially(iterator: Iterator<WriteBatch>) {
+        if (!iterator.hasNext()) return
+        val batch = iterator.next()
+        batch.commit()
+            .addOnSuccessListener {
+                commitPostBatchesSequentially(iterator)
+            }
+            .addOnFailureListener {
+                // Silent fail; user profile tetap terupdate
+            }
+    }
+
     private fun updatePasswordIfNeeded(password: String) {
         val currentUser = auth.currentUser ?: return
 
@@ -177,13 +364,17 @@ class EditProfilActivity : AppCompatActivity() {
             currentUser.updatePassword(password)
                 .addOnSuccessListener {
                     Toast.makeText(this, "Profile updated successfully", Toast.LENGTH_SHORT).show()
+                    setResult(RESULT_OK)
                     finish()
                 }
                 .addOnFailureListener { e ->
                     Toast.makeText(this, "Error updating password: ${e.message}", Toast.LENGTH_SHORT).show()
+                    setResult(RESULT_OK)
+                    finish()
                 }
         } else {
             Toast.makeText(this, "Profile updated successfully", Toast.LENGTH_SHORT).show()
+            setResult(RESULT_OK)
             finish()
         }
     }

@@ -9,6 +9,9 @@ data class Post(
     var timestamp: Timestamp? = null,
     var userId: String = "",
     var username: String = "",
+    var name: String = "",
+    var profileImageUrl: String = "",
+    var bannerImageUrl: String = "",
     var likes: MutableList<String> = mutableListOf(),
     var commentCount: Int = 0
 )

@@ -66,4 +66,5 @@ dependencies {
     implementation("androidx.constraintlayout:constraintlayout:2.1.4")
     implementation("com.google.firebase:firebase-storage-ktx:21.0.1")
     implementation("com.google.android.gms:play-services-auth:21.1.0")
+    implementation("com.github.bumptech.glide:glide:4.16.0")
 }

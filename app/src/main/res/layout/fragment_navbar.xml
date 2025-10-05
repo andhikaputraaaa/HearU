@@ -9,8 +9,7 @@
     android:layout_marginBottom="24dp"
     android:background="@drawable/navbar_background"
     android:orientation="horizontal"
-    android:gravity="center"
-    android:elevation="8dp">
+    android:gravity="center">
 
     <ImageView
         android:id="@+id/nav_home"
