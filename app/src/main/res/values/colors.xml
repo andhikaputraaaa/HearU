@@ -11,4 +11,5 @@
     <color name="darkMain">#142E48</color>
     <color name="input">#5C5C5C</color>
     <color name="gray">#5C5C5C</color>
+    <color name="red">#FF0000</color>
 </resources>

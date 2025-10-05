@@ -66,7 +66,8 @@ class PostingActivity : AppCompatActivity() {
                         "username" to username,
                         "content" to content,
                         "isAnonymous" to isAnonymous,
-                        "timestamp" to FieldValue.serverTimestamp()
+                        "timestamp" to FieldValue.serverTimestamp(),
+                        "likes" to listOf<String>()
                     )
 
                     db.collection("posts")

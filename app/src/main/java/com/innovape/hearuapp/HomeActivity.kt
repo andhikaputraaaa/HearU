@@ -6,6 +6,7 @@ import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
 import com.innovape.hearuapp.data.model.Post
@@ -25,7 +26,9 @@ class HomeActivity : AppCompatActivity(), Navbar.OnNavigationClickListener {
 
         recyclerView = findViewById(R.id.recyclerViewPosts)
         recyclerView.layoutManager = LinearLayoutManager(this)
-        postAdapter = PostAdapter(postList)
+        postAdapter = PostAdapter(postList) { postId, liked ->
+            toggleLike(postId, liked)
+        }
         recyclerView.adapter = postAdapter
 
         loadPosts()
@@ -61,6 +64,7 @@ class HomeActivity : AppCompatActivity(), Navbar.OnNavigationClickListener {
                     for (doc in snapshot.documents) {
                         try {
                             val post = doc.toObject(Post::class.java)
+                            post?.id = doc.id
                             if (post != null) {
                                 postList.add(post)
                             }
@@ -75,5 +79,23 @@ class HomeActivity : AppCompatActivity(), Navbar.OnNavigationClickListener {
 
     }
 
+    private fun toggleLike(postId: String, liked: Boolean) {
+        val currentUser = FirebaseAuth.getInstance().currentUser ?: return
+        val db = FirebaseFirestore.getInstance()
+        val postRef = db.collection("posts").document(postId)
+
+        db.runTransaction { transaction ->
+            val snapshot = transaction.get(postRef)
+            val likes = snapshot.get("likes") as? MutableList<String> ?: mutableListOf()
+
+            if (liked) {
+                likes.remove(currentUser.uid)
+            } else {
+                likes.add(currentUser.uid)
+            }
+
+            transaction.update(postRef, "likes", likes)
+        }
+    }
 
 }
