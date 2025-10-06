@@ -43,7 +43,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
-            android:text="Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer feugiat vitae sem eget mollis."
+            android:text="@string/masuk_desc"
             android:textColor="@android:color/white"
             android:textSize="14sp"
             android:lineSpacingExtra="4dp" />

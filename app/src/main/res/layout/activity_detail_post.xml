@@ -67,7 +67,7 @@
                         android:id="@+id/ivPostProfile"
                         android:layout_width="48dp"
                         android:layout_height="48dp"
-                        android:src="@drawable/ic_default_profile"
+                        android:src="@drawable/ic_photo_profile"
                         android:background="@drawable/circle_background"/>
 
                     <LinearLayout
@@ -221,8 +221,9 @@
                 android:id="@+id/recyclerViewComments"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:nestedScrollingEnabled="false"
-                android:padding="16dp"/>
+                android:layout_weight="1"
+                android:overScrollMode="never"
+                android:scrollbars="vertical"/>
         </LinearLayout>
     </ScrollView>
 

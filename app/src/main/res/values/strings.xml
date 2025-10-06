@@ -4,6 +4,7 @@
     <string name="welcome">Selamat Datang</string>
     <string name="welcome_desc">Selamat datang di HearU! Di sini, kamu memiliki ruang aman untuk bercerita, mengungkapkan isi hati, atau sekadar berbagi tanpa rasa takut dihakimi. Ingat, kamu tidak sendirian. HearU hadir untuk mendengarkan, menemanimu, dan memberi tempat di mana setiap cerita berarti.</string>
     <string name="masuk">Masuk</string>
+    <string name="masuk_desc">Sudah membuat akun sebelumnya? Mari mulai bercerita, kami komunitas HearU sudah siap mendengarkan ceritamu!</string>
     <string name="daftar">Daftar</string>
     <string name="daftar_desc">Ayo buat akun Anda dan kami siap mendengarkan ceritamu!</string>
     <string name="back">Kembali</string>

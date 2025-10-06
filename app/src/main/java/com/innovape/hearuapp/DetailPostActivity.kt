@@ -10,6 +10,7 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
+import com.google.firebase.firestore.Source
 import com.innovape.hearuapp.data.model.Comment
 import com.innovape.hearuapp.databinding.ActivityDetailPostBinding
 import com.innovape.hearuapp.ui.adapter.CommentAdapter
@@ -77,6 +78,7 @@ class DetailPostActivity : AppCompatActivity() {
 
                 if (doc != null && doc.exists()) {
                     val username = doc.getString("username") ?: ""
+                    val name = doc.getString("name") ?: ""
                     val content = doc.getString("content") ?: ""
                     val isAnon = doc.getBoolean("isAnonymous") ?: false
                     val ts = doc.getTimestamp("timestamp")
@@ -88,7 +90,7 @@ class DetailPostActivity : AppCompatActivity() {
                     isLiked = currentUserId != null && likes.contains(currentUserId)
 
                     // tampilkan data di UI
-                    binding.tvDetailUsername.text = if (isAnon) "Anonim" else username
+                    binding.tvDetailUsername.text = if (isAnon) "Anonim" else name
                     binding.tvDetailHandle.text = if (isAnon) "" else "@$username"
                     binding.tvDetailContent.text = content
                     binding.tvLikeCount.text = likeCount.toString()
@@ -147,16 +149,21 @@ class DetailPostActivity : AppCompatActivity() {
 
     private fun loadComments() {
         val db = FirebaseFirestore.getInstance()
+        val commentsRef = db.collection("posts").document(postId).collection("comments")
 
-        // Ganti get() dengan addSnapshotListener()
-        db.collection("posts").document(postId)
-            .collection("comments")
-            .orderBy("timestamp", Query.Direction.ASCENDING)
+        // Coba fetch langsung dari server untuk memastikan tidak ada batas cache
+        commentsRef.get(Source.SERVER).addOnSuccessListener {
+            Log.d("DetailPost", "Fetched ${it.size()} comments directly from server")
+        }
+
+        commentsRef.orderBy("timestamp", Query.Direction.ASCENDING)
             .addSnapshotListener { snapshot, e ->
                 if (e != null) {
                     Log.w("CommentActivity", "Listen failed.", e)
                     return@addSnapshotListener
                 }
+
+                Log.d("DetailPost", "Jumlah komentar yang diterima: ${snapshot?.size()}")
 
                 if (snapshot != null) {
                     val commentList = mutableListOf<Comment>()
@@ -170,6 +177,7 @@ class DetailPostActivity : AppCompatActivity() {
                 }
             }
     }
+
 
 
     private fun addComment(content: String) {
