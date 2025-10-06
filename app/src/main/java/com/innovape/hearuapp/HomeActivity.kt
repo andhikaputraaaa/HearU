@@ -39,6 +39,11 @@ class HomeActivity : AppCompatActivity(), Navbar.OnNavigationClickListener {
         )
         recyclerView.adapter = postAdapter
 
+        val logo = findViewById<ImageView>(R.id.logo)
+        logo.setOnClickListener {
+            recyclerView.smoothScrollToPosition(0)
+        }
+
         loadPosts()
     }
 
@@ -104,6 +109,12 @@ class HomeActivity : AppCompatActivity(), Navbar.OnNavigationClickListener {
 
             transaction.update(postRef, "likes", likes)
         }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        val bottomNavFragment = supportFragmentManager.findFragmentById(R.id.bottom_nav_container) as? Navbar
+        bottomNavFragment?.setActiveItem(0) // Home position
     }
 
 }

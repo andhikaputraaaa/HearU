@@ -67,4 +67,6 @@ dependencies {
     implementation("com.google.firebase:firebase-storage-ktx:21.0.1")
     implementation("com.google.android.gms:play-services-auth:21.1.0")
     implementation("com.github.bumptech.glide:glide:4.16.0")
+    implementation("androidx.activity:activity-ktx:1.8.2")
+    implementation("id.zelory:compressor:3.0.1")
 }

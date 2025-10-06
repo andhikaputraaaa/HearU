@@ -23,6 +23,7 @@ import kotlin.text.clear
 import kotlin.text.get
 import android.widget.TextView
 import androidx.core.widget.NestedScrollView
+import kotlin.collections.remove
 
 class ProfileActivity : AppCompatActivity(), Navbar.OnNavigationClickListener {
 
@@ -31,8 +32,14 @@ class ProfileActivity : AppCompatActivity(), Navbar.OnNavigationClickListener {
     private val postList = mutableListOf<Post>()
     private lateinit var auth: FirebaseAuth
     private var userListener: ListenerRegistration? = null
+    private var postsListener: ListenerRegistration? = null
     private var ivProfile: ImageView? = null
     private var ivBanner: ImageView? = null
+
+    companion object {
+        private const val EDIT_PROFILE_REQUEST = 100
+    }
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -52,7 +59,7 @@ class ProfileActivity : AppCompatActivity(), Navbar.OnNavigationClickListener {
         val settingsButton = findViewById<ImageView>(R.id.iv_settings)
         settingsButton.setOnClickListener {
             val intent = Intent(this, EditProfilActivity::class.java)
-            startActivity(intent)
+            startActivityForResult(intent, EDIT_PROFILE_REQUEST)
         }
 
         recyclerView = findViewById(R.id.recyclerViewPosts)
@@ -82,9 +89,9 @@ class ProfileActivity : AppCompatActivity(), Navbar.OnNavigationClickListener {
     override fun onDestroy() {
         super.onDestroy()
         userListener?.remove()
+        postsListener?.remove()
     }
 
-    // Ganti fungsi lama loadUserProfile dengan versi realtime di bawah
     private fun loadUserProfile() {
         val currentUser = auth.currentUser
         if (currentUser == null) {
@@ -111,24 +118,24 @@ class ProfileActivity : AppCompatActivity(), Navbar.OnNavigationClickListener {
                         if (!profileUrl.isNullOrEmpty()) {
                             Glide.with(this)
                                 .load(profileUrl)
-                                .placeholder(R.drawable.ic_profile_placeholder)
-                                .error(R.drawable.ic_profile_placeholder)
+                                .placeholder(R.drawable.ic_photo_profile)
+                                .error(R.drawable.ic_photo_profile)
                                 .circleCrop()
                                 .into(iv)
                         } else {
-                            iv.setImageResource(R.drawable.ic_profile_placeholder)
+                            iv.setImageResource(R.drawable.ic_photo_profile)
                         }
                     }
                     ivBanner?.let { iv ->
                         if (!bannerUrl.isNullOrEmpty()) {
                             Glide.with(this)
                                 .load(bannerUrl)
-                                .placeholder(R.drawable.ic_banner_placeholder)
-                                .error(R.drawable.ic_banner_placeholder)
+                                .placeholder(R.drawable.ic_profile_background)
+                                .error(R.drawable.ic_profile_background)
                                 .centerCrop()
                                 .into(iv)
                         } else {
-                            iv.setImageResource(R.drawable.ic_banner_placeholder)
+                            iv.setImageResource(R.drawable.ic_profile_background)
                         }
                     }
                 } else {
@@ -140,8 +147,11 @@ class ProfileActivity : AppCompatActivity(), Navbar.OnNavigationClickListener {
     private fun loadUserPosts() {
         val currentUser = auth.currentUser ?: return
         val db = FirebaseFirestore.getInstance()
-        // Jika ingin juga menampilkan posting anonim milik user, hapus filter isAnonymous:
-        db.collection("posts")
+
+        // Hapus listener lama jika ada
+        postsListener?.remove()
+
+        postsListener = db.collection("posts")
             .whereEqualTo("userId", currentUser.uid)
             .orderBy("timestamp", Query.Direction.DESCENDING)
             .addSnapshotListener { snapshot, e ->
@@ -223,8 +233,21 @@ class ProfileActivity : AppCompatActivity(), Navbar.OnNavigationClickListener {
 
     override fun onResume() {
         super.onResume()
-        // Reload posts when returning to this activity
-        loadUserPosts()
+        val bottomNavFragment = supportFragmentManager.findFragmentById(R.id.bottom_nav_container) as? Navbar
+        bottomNavFragment?.setActiveItem(2)
+
         loadUserProfile()
     }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode == EDIT_PROFILE_REQUEST && resultCode == RESULT_OK) {
+            loadUserProfile()
+            postsListener?.remove()
+            recyclerView.postDelayed({
+                loadUserPosts()
+            }, 500) // Delay 1 detik
+        }
+    }
+
 }

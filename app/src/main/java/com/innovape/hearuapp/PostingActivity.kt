@@ -10,6 +10,7 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.innovape.hearuapp.databinding.ActivityPostingBinding
+import kotlin.text.get
 
 class PostingActivity : AppCompatActivity() {
 
@@ -51,23 +52,19 @@ class PostingActivity : AppCompatActivity() {
 
         val userId = currentUser.uid
 
-        // ambil username dari collection "users"
         db.collection("users").document(userId).get()
             .addOnSuccessListener { document ->
                 if (document.exists()) {
-                    val username = if (isAnonymous) {
-                        "Anonim"
-                    } else {
-                        document.getString("username") ?: "User"
-                    }
-
                     val post = hashMapOf(
                         "userId" to userId,
-                        "username" to username,
+                        "username" to if (isAnonymous) "Anonim" else (document.getString("username") ?: "User"),
+                        "name" to if (isAnonymous) "Anonim" else (document.getString("name") ?: ""),
+                        "profileImageUrl" to if (isAnonymous) "" else (document.getString("profileImageUrl") ?: ""),
                         "content" to content,
-                        "isAnonymous" to isAnonymous,
+                        "isAnonymous" to isAnonymous, // Pastikan field ini ada dan benar
                         "timestamp" to FieldValue.serverTimestamp(),
-                        "likes" to listOf<String>()
+                        "likes" to listOf<String>(),
+                        "commentCount" to 0
                     )
 
                     db.collection("posts")
@@ -79,13 +76,16 @@ class PostingActivity : AppCompatActivity() {
                         .addOnFailureListener { e ->
                             Toast.makeText(this, "Gagal posting: ${e.message}", Toast.LENGTH_SHORT).show()
                         }
-                } else {
-                    Toast.makeText(this, "Data user tidak ditemukan", Toast.LENGTH_SHORT).show()
                 }
             }
-            .addOnFailureListener {
-                Toast.makeText(this, "Gagal mengambil data user", Toast.LENGTH_SHORT).show()
-            }
     }
+
+
+    override fun onResume() {
+        super.onResume()
+        val bottomNavFragment = supportFragmentManager.findFragmentById(R.id.bottom_nav_container) as? Navbar
+        bottomNavFragment?.setActiveItem(1) // Edit/Posting position
+    }
+
 }
 

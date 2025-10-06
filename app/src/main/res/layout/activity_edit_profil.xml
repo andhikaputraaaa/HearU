@@ -228,7 +228,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="48dp"
                 android:layout_marginTop="32dp"
-                android:text="Posting"
+                android:text="Ubah Profil"
                 android:textColor="#FFFFFF"
                 android:textSize="16sp"
                 android:textStyle="bold"

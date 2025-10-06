@@ -61,7 +61,7 @@
         android:layout_height="0dp"
         android:fillViewport="true"
         app:layout_constraintTop_toBottomOf="@id/header"
-        app:layout_constraintBottom_toTopOf="@id/bottom_nav_container"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
 
@@ -212,7 +212,7 @@
                 android:layout_height="match_parent"
                 android:layout_marginTop="8dp"
                 android:nestedScrollingEnabled="false"
-                android:paddingBottom="175dp"/>
+                android:paddingBottom="125dp"/>
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
 

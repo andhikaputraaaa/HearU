@@ -7,5 +7,6 @@ data class Comment(
     var userId: String = "",
     var username: String = "",
     var content: String = "",
+    var profileImageUrl: String? = null,
     var timestamp: Timestamp? = null
 )

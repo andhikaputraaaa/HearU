@@ -146,25 +146,31 @@ class DetailPostActivity : AppCompatActivity() {
     }
 
     private fun loadComments() {
+        val db = FirebaseFirestore.getInstance()
+
+        // Ganti get() dengan addSnapshotListener()
         db.collection("posts").document(postId)
             .collection("comments")
             .orderBy("timestamp", Query.Direction.ASCENDING)
             .addSnapshotListener { snapshot, e ->
                 if (e != null) {
-                    Log.w("DetailPost", "comments listen failed", e)
+                    Log.w("CommentActivity", "Listen failed.", e)
                     return@addSnapshotListener
                 }
-                val list = snapshot?.documents?.mapNotNull { d ->
-                    val c = d.toObject(Comment::class.java)
-                    c?.apply { id = d.id }
-                } ?: emptyList()
-                adapter.updateData(list)
-                // scroll ke komentar terakhir
-                if (list.isNotEmpty()) {
-                    binding.recyclerViewComments.scrollToPosition(list.size - 1)
+
+                if (snapshot != null) {
+                    val commentList = mutableListOf<Comment>()
+                    snapshot.documents.forEach { doc ->
+                        doc.toObject(Comment::class.java)?.let { comment ->
+                            comment.id = doc.id
+                            commentList.add(comment)
+                        }
+                    }
+                    adapter.updateData(commentList)
                 }
             }
     }
+
 
     private fun addComment(content: String) {
         val user = auth.currentUser ?: run {
