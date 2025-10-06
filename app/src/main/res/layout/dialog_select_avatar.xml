@@ -1,0 +1,301 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="24dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Pilih Avatar"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:textColor="#000000"
+            android:layout_marginBottom="16dp" />
+
+        <GridLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:columnCount="3"
+            android:rowCount="2"
+            android:alignmentMode="alignBounds"
+            android:useDefaultMargins="true">
+
+            <FrameLayout
+                android:layout_width="0dp"
+                android:layout_height="80dp"
+                android:layout_columnWeight="1">
+                <ImageView
+                    android:id="@+id/ivAvatarAnjing"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:src="@drawable/anjing"
+                    android:scaleType="centerInside"
+                    android:padding="8dp"
+                    android:background="?attr/selectableItemBackground"
+                    android:contentDescription="Avatar Anjing" />
+                <ImageView
+                    android:id="@+id/checkAvatarAnjing"
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:layout_gravity="end|bottom"
+                    android:src="@drawable/ic_check"
+                    android:visibility="gone"
+                    android:layout_margin="4dp" />
+            </FrameLayout>
+
+            <FrameLayout
+                android:layout_width="0dp"
+                android:layout_height="80dp"
+                android:layout_columnWeight="1">
+                <ImageView
+                    android:id="@+id/ivAvatarBabi"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:src="@drawable/babi"
+                    android:scaleType="centerInside"
+                    android:padding="8dp"
+                    android:background="?attr/selectableItemBackground"
+                    android:contentDescription="Avatar Babi" />
+                <ImageView
+                    android:id="@+id/checkAvatarBabi"
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:layout_gravity="end|bottom"
+                    android:src="@drawable/ic_check"
+                    android:visibility="gone"
+                    android:layout_margin="4dp" />
+            </FrameLayout>
+
+            <FrameLayout
+                android:layout_width="0dp"
+                android:layout_height="80dp"
+                android:layout_columnWeight="1">
+                <ImageView
+                    android:id="@+id/ivAvatarKelinci"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:src="@drawable/kelinci"
+                    android:scaleType="centerInside"
+                    android:padding="8dp"
+                    android:background="?attr/selectableItemBackground"
+                    android:contentDescription="Avatar Kelinci" />
+                <ImageView
+                    android:id="@+id/checkAvatarKelinci"
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:layout_gravity="end|bottom"
+                    android:src="@drawable/ic_check"
+                    android:visibility="gone"
+                    android:layout_margin="4dp" />
+            </FrameLayout>
+
+            <FrameLayout
+                android:layout_width="0dp"
+                android:layout_height="80dp"
+                android:layout_columnWeight="1">
+                <ImageView
+                    android:id="@+id/ivAvatarKucing"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:src="@drawable/kucing"
+                    android:scaleType="centerInside"
+                    android:padding="8dp"
+                    android:background="?attr/selectableItemBackground"
+                    android:contentDescription="Avatar Kucing" />
+                <ImageView
+                    android:id="@+id/checkAvatarKucing"
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:layout_gravity="end|bottom"
+                    android:src="@drawable/ic_check"
+                    android:visibility="gone"
+                    android:layout_margin="4dp" />
+            </FrameLayout>
+
+            <FrameLayout
+                android:layout_width="0dp"
+                android:layout_height="80dp"
+                android:layout_columnWeight="1">
+                <ImageView
+                    android:id="@+id/ivAvatarMonyet"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:src="@drawable/monyet"
+                    android:scaleType="centerInside"
+                    android:padding="8dp"
+                    android:background="?attr/selectableItemBackground"
+                    android:contentDescription="Avatar Monyet" />
+                <ImageView
+                    android:id="@+id/checkAvatarMonyet"
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:layout_gravity="end|bottom"
+                    android:src="@drawable/ic_check"
+                    android:visibility="gone"
+                    android:layout_margin="4dp" />
+            </FrameLayout>
+
+        </GridLayout>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="#E0E0E0"
+            android:layout_marginTop="24dp"
+            android:layout_marginBottom="16dp"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Pilih Banner"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:textColor="#000000"
+            android:layout_marginBottom="16dp" />
+
+        <GridLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:columnCount="2"
+            android:rowCount="3"
+            android:alignmentMode="alignBounds"
+            android:useDefaultMargins="true">
+
+            <FrameLayout
+                android:layout_width="0dp"
+                android:layout_height="80dp"
+                android:layout_columnWeight="1">
+                <ImageView
+                    android:id="@+id/ivBannerDanau"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:src="@drawable/danau"
+                    android:scaleType="centerCrop"
+                    android:padding="4dp"
+                    android:background="?attr/selectableItemBackground"
+                    android:contentDescription="Banner Danau" />
+                <ImageView
+                    android:id="@+id/checkBannerDanau"
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:layout_gravity="end|bottom"
+                    android:src="@drawable/ic_check"
+                    android:visibility="gone"
+                    android:layout_margin="4dp" />
+            </FrameLayout>
+
+            <FrameLayout
+                android:layout_width="0dp"
+                android:layout_height="80dp"
+                android:layout_columnWeight="1">
+                <ImageView
+                    android:id="@+id/ivBannerHutanMusimSemi"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:src="@drawable/hutan_musim_semi"
+                    android:scaleType="centerCrop"
+                    android:padding="4dp"
+                    android:background="?attr/selectableItemBackground"
+                    android:contentDescription="Banner Hutan Musim Semi" />
+                <ImageView
+                    android:id="@+id/checkBannerHutanMusimSemi"
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:layout_gravity="end|bottom"
+                    android:src="@drawable/ic_check"
+                    android:visibility="gone"
+                    android:layout_margin="4dp" />
+            </FrameLayout>
+
+            <FrameLayout
+                android:layout_width="0dp"
+                android:layout_height="80dp"
+                android:layout_columnWeight="1">
+                <ImageView
+                    android:id="@+id/ivBannerPantai"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:src="@drawable/pantai"
+                    android:scaleType="centerCrop"
+                    android:padding="4dp"
+                    android:background="?attr/selectableItemBackground"
+                    android:contentDescription="Banner Pantai" />
+                <ImageView
+                    android:id="@+id/checkBannerPantai"
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:layout_gravity="end|bottom"
+                    android:src="@drawable/ic_check"
+                    android:visibility="gone"
+                    android:layout_margin="4dp" />
+            </FrameLayout>
+
+            <FrameLayout
+                android:layout_width="0dp"
+                android:layout_height="80dp"
+                android:layout_columnWeight="1">
+                <ImageView
+                    android:id="@+id/ivBannerPegununganSunset"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:src="@drawable/pegunungan_sunset"
+                    android:scaleType="centerCrop"
+                    android:padding="4dp"
+                    android:background="?attr/selectableItemBackground"
+                    android:contentDescription="Banner Pegunungan Sunset" />
+                <ImageView
+                    android:id="@+id/checkBannerPegununganSunset"
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:layout_gravity="end|bottom"
+                    android:src="@drawable/ic_check"
+                    android:visibility="gone"
+                    android:layout_margin="4dp" />
+            </FrameLayout>
+
+            <FrameLayout
+                android:layout_width="0dp"
+                android:layout_height="80dp"
+                android:layout_columnWeight="1">
+                <ImageView
+                    android:id="@+id/ivBannerRumahPadangHijau"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:src="@drawable/rumah_di_padang_hijau"
+                    android:scaleType="centerCrop"
+                    android:padding="4dp"
+                    android:background="?attr/selectableItemBackground"
+                    android:contentDescription="Banner Rumah di Padang Hijau" />
+                <ImageView
+                    android:id="@+id/checkBannerRumahPadangHijau"
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:layout_gravity="end|bottom"
+                    android:src="@drawable/ic_check"
+                    android:visibility="gone"
+                    android:layout_margin="4dp" />
+            </FrameLayout>
+
+        </GridLayout>
+
+        <!-- Tombol Pilih -->
+        <Button
+            android:id="@+id/btnSelectAvatar"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:layout_marginTop="24dp"
+            android:text="Pilih"
+            android:textColor="#FFFFFF"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:backgroundTint="@color/mainCyan"
+            android:elevation="2dp" />
+
+    </LinearLayout>
+</ScrollView>

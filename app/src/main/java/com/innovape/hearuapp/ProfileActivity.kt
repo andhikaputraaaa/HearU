@@ -112,10 +112,28 @@ class ProfileActivity : AppCompatActivity(), Navbar.OnNavigationClickListener {
                     val name = snapshot.getString("name") ?: username
                     findViewById<TextView>(R.id.tv_username).text = name
                     findViewById<TextView>(R.id.tv_handle).text = "@$username"
+
+                    // Load profile image
+                    val profileResourceName = snapshot.getString("profileImageResource")
                     val profileUrl = snapshot.getString("profileImageUrl")
-                    val bannerUrl = snapshot.getString("bannerImageUrl")
+
                     ivProfile?.let { iv ->
-                        if (!profileUrl.isNullOrEmpty()) {
+                        if (!profileResourceName.isNullOrEmpty()) {
+                            val resId = getDrawableResourceId(profileResourceName)
+                            if (resId != null) {
+                                Glide.with(this)
+                                    .load(resId)
+                                    .placeholder(R.drawable.ic_photo_profile)
+                                    .error(R.drawable.ic_photo_profile)
+                                    .circleCrop()
+                                    .into(iv)
+                            } else {
+                                Glide.with(this)
+                                    .load(R.drawable.ic_photo_profile)
+                                    .circleCrop()
+                                    .into(iv)
+                            }
+                        } else if (!profileUrl.isNullOrEmpty()) {
                             Glide.with(this)
                                 .load(profileUrl)
                                 .placeholder(R.drawable.ic_photo_profile)
@@ -123,11 +141,31 @@ class ProfileActivity : AppCompatActivity(), Navbar.OnNavigationClickListener {
                                 .circleCrop()
                                 .into(iv)
                         } else {
-                            iv.setImageResource(R.drawable.ic_photo_profile)
+                            Glide.with(this)
+                                .load(R.drawable.ic_photo_profile)
+                                .circleCrop()
+                                .into(iv)
                         }
                     }
+
+                    // Load banner image
+                    val bannerResourceName = snapshot.getString("bannerImageResource")
+                    val bannerUrl = snapshot.getString("bannerImageUrl")
+
                     ivBanner?.let { iv ->
-                        if (!bannerUrl.isNullOrEmpty()) {
+                        if (!bannerResourceName.isNullOrEmpty()) {
+                            val resId = getDrawableResourceId(bannerResourceName)
+                            if (resId != null) {
+                                Glide.with(this)
+                                    .load(resId)
+                                    .placeholder(R.drawable.ic_profile_background)
+                                    .error(R.drawable.ic_profile_background)
+                                    .centerCrop()
+                                    .into(iv)
+                            } else {
+                                iv.setImageResource(R.drawable.ic_profile_background)
+                            }
+                        } else if (!bannerUrl.isNullOrEmpty()) {
                             Glide.with(this)
                                 .load(bannerUrl)
                                 .placeholder(R.drawable.ic_profile_background)
@@ -143,6 +181,18 @@ class ProfileActivity : AppCompatActivity(), Navbar.OnNavigationClickListener {
                 }
             }
     }
+
+
+    private fun getDrawableResourceId(resourceName: String?): Int? {
+        if (resourceName.isNullOrEmpty()) return null
+        return try {
+            resources.getIdentifier(resourceName, "drawable", packageName)
+        } catch (e: Exception) {
+            null
+        }
+    }
+
+
 
     private fun loadUserPosts() {
         val currentUser = auth.currentUser ?: return
@@ -237,6 +287,9 @@ class ProfileActivity : AppCompatActivity(), Navbar.OnNavigationClickListener {
         bottomNavFragment?.setActiveItem(2)
 
         loadUserProfile()
+
+        postsListener?.remove()
+        loadUserPosts()
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {

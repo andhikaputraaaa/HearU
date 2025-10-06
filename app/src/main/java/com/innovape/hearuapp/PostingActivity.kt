@@ -60,8 +60,11 @@ class PostingActivity : AppCompatActivity() {
                         "username" to if (isAnonymous) "Anonim" else (document.getString("username") ?: "User"),
                         "name" to if (isAnonymous) "Anonim" else (document.getString("name") ?: ""),
                         "profileImageUrl" to if (isAnonymous) "" else (document.getString("profileImageUrl") ?: ""),
+                        "profileImageResource" to if (isAnonymous) "" else (document.getString("profileImageResource") ?: ""),
+                        "bannerImageUrl" to if (isAnonymous) "" else (document.getString("bannerImageUrl") ?: ""),
+                        "bannerImageResource" to if (isAnonymous) "" else (document.getString("bannerImageResource") ?: ""),
                         "content" to content,
-                        "isAnonymous" to isAnonymous, // Pastikan field ini ada dan benar
+                        "isAnonymous" to isAnonymous,
                         "timestamp" to FieldValue.serverTimestamp(),
                         "likes" to listOf<String>(),
                         "commentCount" to 0
@@ -79,6 +82,7 @@ class PostingActivity : AppCompatActivity() {
                 }
             }
     }
+
 
 
     override fun onResume() {

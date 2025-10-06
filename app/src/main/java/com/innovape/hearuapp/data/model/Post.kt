@@ -11,7 +11,9 @@ data class Post(
     var username: String = "",
     var name: String = "",
     var profileImageUrl: String = "",
+    var profileImageResource: String = "",
     var bannerImageUrl: String = "",
+    var bannerImageResource: String = "",
     var likes: MutableList<String> = mutableListOf(),
     var commentCount: Int = 0
 )

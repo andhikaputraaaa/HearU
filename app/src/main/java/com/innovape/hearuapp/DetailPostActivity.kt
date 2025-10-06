@@ -86,6 +86,10 @@ class DetailPostActivity : AppCompatActivity() {
                     val commentCount = (doc.getLong("commentCount") ?: 0L).toInt()
                     val likeCount = likes.size
 
+                    val profileImageResource = doc.getString("profileImageResource")
+                    val profileImageUrl = doc.getString("profileImageUrl")
+
+
                     val currentUserId = auth.currentUser?.uid
                     isLiked = currentUserId != null && likes.contains(currentUserId)
 
@@ -99,6 +103,9 @@ class DetailPostActivity : AppCompatActivity() {
                         if (isLiked) R.drawable.ic_like_filled else R.drawable.ic_like_outline
                     )
 
+                    // Load profile image
+                    loadProfileImage(isAnon, profileImageResource, profileImageUrl)
+
                     val formatted = ts?.toDate()?.let {
                         val sdf = SimpleDateFormat("HH.mm · dd MMM yyyy", Locale.getDefault())
                         sdf.format(it)
@@ -107,6 +114,51 @@ class DetailPostActivity : AppCompatActivity() {
                 }
             }
     }
+
+    private fun loadProfileImage(isAnonymous: Boolean, profileResourceName: String?, profileImageUrl: String?) {
+        if (isAnonymous) {
+            com.bumptech.glide.Glide.with(this)
+                .load(R.drawable.ic_profile_placeholder)
+                .circleCrop()
+                .into(binding.ivPostProfile)
+        } else {
+            if (!profileResourceName.isNullOrEmpty()) {
+                val resId = getDrawableResourceId(profileResourceName)
+                if (resId != null) {
+                    com.bumptech.glide.Glide.with(this)
+                        .load(resId)
+                        .placeholder(R.drawable.ic_profile_placeholder)
+                        .error(R.drawable.ic_profile_placeholder)
+                        .circleCrop()
+                        .into(binding.ivPostProfile)
+                } else {
+                    binding.ivPostProfile.setImageResource(R.drawable.ic_profile_placeholder)
+                }
+            } else if (!profileImageUrl.isNullOrEmpty()) {
+                com.bumptech.glide.Glide.with(this)
+                    .load(profileImageUrl)
+                    .placeholder(R.drawable.ic_profile_placeholder)
+                    .error(R.drawable.ic_profile_placeholder)
+                    .circleCrop()
+                    .into(binding.ivPostProfile)
+            } else {
+                com.bumptech.glide.Glide.with(this)
+                    .load(R.drawable.ic_profile_placeholder)
+                    .circleCrop()
+                    .into(binding.ivPostProfile)
+            }
+        }
+    }
+
+    private fun getDrawableResourceId(resourceName: String?): Int? {
+        if (resourceName.isNullOrEmpty()) return null
+        return try {
+            resources.getIdentifier(resourceName, "drawable", packageName)
+        } catch (e: Exception) {
+            null
+        }
+    }
+
 
     private fun toggleLike() {
         val currentUserId = auth.currentUser?.uid ?: return

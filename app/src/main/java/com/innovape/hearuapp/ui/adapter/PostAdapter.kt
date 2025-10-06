@@ -14,6 +14,9 @@ import com.innovape.hearuapp.R
 import com.innovape.hearuapp.data.model.Post
 import java.text.SimpleDateFormat
 import java.util.*
+import kotlin.collections.get
+import kotlin.text.format
+import kotlin.toString
 
 class PostAdapter(
     private val posts: List<Post>,
@@ -44,37 +47,53 @@ class PostAdapter(
         val post = posts[position]
         val currentUser = FirebaseAuth.getInstance().currentUser
 
-        holder.username.text = if (post.isAnonymous) {
-            "Anonim"
-        } else {
-            "@${post.username}"
-        }
-        holder.name.text = if (post.isAnonymous) {
-            "Anonim"
-        } else {
-            "${post.name}"
-        }
+        holder.username.text = if (post.isAnonymous) "Anonim" else "@${post.username}"
+        holder.name.text = if (post.isAnonymous) "Anonim" else post.name
         holder.content.text = post.content
         holder.tvLikeCount.text = post.likes.size.toString()
         holder.tvCommentCount.text = post.commentCount.toString()
 
-        if (post.isAnonymous || post.profileImageUrl.isEmpty()) {
-            holder.ivProfile.setImageResource(R.drawable.ic_profile_placeholder)
-        } else {
+        // Load profile image
+        if (post.isAnonymous) {
             Glide.with(holder.itemView.context)
-                .load(post.profileImageUrl)
-                .placeholder(R.drawable.ic_profile_placeholder)
-                .error(R.drawable.ic_profile_placeholder)
+                .load(R.drawable.ic_profile_placeholder)
                 .circleCrop()
                 .into(holder.ivProfile)
+        } else {
+            val profileResourceName = post.profileImageResource
+            if (!profileResourceName.isNullOrEmpty()) {
+                val resId = getDrawableResourceId(holder.itemView.context, profileResourceName)
+                if (resId != null) {
+                    Glide.with(holder.itemView.context)
+                        .load(resId)
+                        .placeholder(R.drawable.ic_profile_placeholder)
+                        .error(R.drawable.ic_profile_placeholder)
+                        .circleCrop()
+                        .into(holder.ivProfile)
+                } else {
+                    holder.ivProfile.setImageResource(R.drawable.ic_profile_placeholder)
+                }
+            } else if (post.profileImageUrl.isNotEmpty()) {
+                Glide.with(holder.itemView.context)
+                    .load(post.profileImageUrl)
+                    .placeholder(R.drawable.ic_profile_placeholder)
+                    .error(R.drawable.ic_profile_placeholder)
+                    .circleCrop()
+                    .into(holder.ivProfile)
+            } else {
+                Glide.with(holder.itemView.context)
+                    .load(R.drawable.ic_profile_placeholder)
+                    .circleCrop()
+                    .into(holder.ivProfile)
+            }
         }
+
 
         val liked = currentUser?.uid in post.likes
         holder.ivLike.setImageResource(
             if (liked) R.drawable.ic_like_filled else R.drawable.ic_like_outline
         )
 
-        // Click listener untuk seluruh card
         holder.itemView.setOnClickListener {
             post.id?.let { onCommentClick(it) }
         }
@@ -96,6 +115,16 @@ class PostAdapter(
 
         holder.timestamp.text = formattedDate
     }
+
+    private fun getDrawableResourceId(context: android.content.Context, resourceName: String?): Int? {
+        if (resourceName.isNullOrEmpty()) return null
+        return try {
+            context.resources.getIdentifier(resourceName, "drawable", context.packageName)
+        } catch (e: Exception) {
+            null
+        }
+    }
+
 
     override fun getItemCount(): Int = posts.size
 
