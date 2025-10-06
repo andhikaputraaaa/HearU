@@ -148,13 +148,7 @@ class DetailPostActivity : AppCompatActivity() {
     }
 
     private fun loadComments() {
-        val db = FirebaseFirestore.getInstance()
         val commentsRef = db.collection("posts").document(postId).collection("comments")
-
-        // Coba fetch langsung dari server untuk memastikan tidak ada batas cache
-        commentsRef.get(Source.SERVER).addOnSuccessListener {
-            Log.d("DetailPost", "Fetched ${it.size()} comments directly from server")
-        }
 
         commentsRef.orderBy("timestamp", Query.Direction.ASCENDING)
             .addSnapshotListener { snapshot, e ->
@@ -163,20 +157,27 @@ class DetailPostActivity : AppCompatActivity() {
                     return@addSnapshotListener
                 }
 
-                Log.d("DetailPost", "Jumlah komentar yang diterima: ${snapshot?.size()}")
-
                 if (snapshot != null) {
                     val commentList = mutableListOf<Comment>()
                     snapshot.documents.forEach { doc ->
-                        doc.toObject(Comment::class.java)?.let { comment ->
-                            comment.id = doc.id
-                            commentList.add(comment)
+                        val comment = doc.toObject(Comment::class.java)
+                        comment?.id = doc.id
+
+                        if (comment != null) {
+                            // Ambil username secara dinamis
+                            val userId = comment.userId
+                            db.collection("users").document(userId).get()
+                                .addOnSuccessListener { userDoc ->
+                                    comment.username = userDoc.getString("username") ?: "Anonim"
+                                    commentList.add(comment)
+                                    adapter.updateData(commentList)
+                                }
                         }
                     }
-                    adapter.updateData(commentList)
                 }
             }
     }
+
 
 
 
@@ -187,31 +188,23 @@ class DetailPostActivity : AppCompatActivity() {
         }
         val userId = user.uid
 
-        // ambil username user dari Firestore
-        db.collection("users").document(userId).get()
-            .addOnSuccessListener { userDoc ->
-                val username = userDoc.getString("username") ?: user.email ?: "Anonim"
-                val commentMap = hashMapOf(
-                    "userId" to userId,
-                    "username" to username,
-                    "content" to content,
-                    "timestamp" to FieldValue.serverTimestamp()
-                )
+        val commentMap = hashMapOf(
+            "userId" to userId,
+            "content" to content,
+            "timestamp" to FieldValue.serverTimestamp()
+        )
 
-                db.collection("posts").document(postId).collection("comments")
-                    .add(commentMap)
-                    .addOnSuccessListener {
-                        // update jumlah komentar
-                        db.collection("posts").document(postId)
-                            .update("commentCount", FieldValue.increment(1))
-                        binding.etAddComment.text?.clear()
-                    }
-                    .addOnFailureListener {
-                        Toast.makeText(this, "Gagal mengirim komentar", Toast.LENGTH_SHORT).show()
-                    }
+        db.collection("posts").document(postId).collection("comments")
+            .add(commentMap)
+            .addOnSuccessListener {
+                // update jumlah komentar
+                db.collection("posts").document(postId)
+                    .update("commentCount", FieldValue.increment(1))
+                binding.etAddComment.text?.clear()
             }
             .addOnFailureListener {
-                Toast.makeText(this, "Gagal mengambil data user", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "Gagal mengirim komentar", Toast.LENGTH_SHORT).show()
             }
     }
+
 }
