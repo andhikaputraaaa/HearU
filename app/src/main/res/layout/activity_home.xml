@@ -32,9 +32,11 @@
         android:id="@+id/recyclerViewPosts"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        app:layout_constraintTop_toBottomOf="@id/header"
+        android:background="#F8F9FA"
         android:clipToPadding="false"
-        android:paddingBottom="175dp" />
+        android:paddingTop="8dp"
+        android:paddingBottom="175dp"
+        app:layout_constraintTop_toBottomOf="@id/header" />
 
 
     <!-- Bottom Navigation Bar -->

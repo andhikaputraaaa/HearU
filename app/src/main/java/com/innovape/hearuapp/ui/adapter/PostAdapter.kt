@@ -74,6 +74,11 @@ class PostAdapter(
             if (liked) R.drawable.ic_like_filled else R.drawable.ic_like_outline
         )
 
+        // Click listener untuk seluruh card
+        holder.itemView.setOnClickListener {
+            post.id?.let { onCommentClick(it) }
+        }
+
         holder.ivLike.setOnClickListener {
             animateLikeButton(holder.ivLike)
             post.id?.let { postId ->
