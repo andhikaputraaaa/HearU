@@ -8,5 +8,6 @@ data class Comment(
     var username: String = "",
     var content: String = "",
     var profileImageUrl: String? = null,
+    var profileImageResource: String? = null,
     var timestamp: Timestamp? = null
 )

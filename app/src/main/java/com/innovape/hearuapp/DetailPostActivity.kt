@@ -16,6 +16,7 @@ import com.innovape.hearuapp.databinding.ActivityDetailPostBinding
 import com.innovape.hearuapp.ui.adapter.CommentAdapter
 import java.text.SimpleDateFormat
 import java.util.Locale
+import kotlin.text.get
 
 class DetailPostActivity : AppCompatActivity() {
 
@@ -216,11 +217,12 @@ class DetailPostActivity : AppCompatActivity() {
                         comment?.id = doc.id
 
                         if (comment != null) {
-                            // Ambil username secara dinamis
                             val userId = comment.userId
                             db.collection("users").document(userId).get()
                                 .addOnSuccessListener { userDoc ->
                                     comment.username = userDoc.getString("username") ?: "Anonim"
+                                    comment.profileImageResource = userDoc.getString("profileImageResource")
+                                    comment.profileImageUrl = userDoc.getString("profileImageUrl")
                                     commentList.add(comment)
                                     adapter.updateData(commentList)
                                 }
@@ -229,6 +231,7 @@ class DetailPostActivity : AppCompatActivity() {
                 }
             }
     }
+
 
 
 
