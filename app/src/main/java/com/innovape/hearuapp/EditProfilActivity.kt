@@ -1,9 +1,6 @@
 package com.innovape.hearuapp
 
-import android.app.Activity
 import android.content.pm.PackageManager
-import android.graphics.Bitmap
-import android.graphics.BitmapFactory
 import android.net.Uri
 import android.os.Bundle
 import android.util.Log
@@ -15,11 +12,9 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.bumptech.glide.Glide
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.WriteBatch
 import com.google.firebase.storage.FirebaseStorage
-import java.io.ByteArrayOutputStream
 
 class EditProfilActivity : AppCompatActivity() {
 
@@ -335,7 +330,7 @@ class EditProfilActivity : AppCompatActivity() {
         }
 
         // Cek apakah ada perubahan password
-        val passwordToUpdate = if (password.isEmpty()) null else password
+        val passwordToUpdate = password.ifEmpty { null }
 
         if (selectedProfileImageUri != null || selectedBannerImageUri != null) {
 //            uploadImagesToStorage(name, username, email, passwordToUpdate)
@@ -405,283 +400,9 @@ class EditProfilActivity : AppCompatActivity() {
     }
 
     private fun finishUpdate() {
-        setResult(Activity.RESULT_OK)
+        setResult(RESULT_OK)
         finish()
     }
-
-    private fun updateUserDataWithDrawables(
-        userId: String,
-        name: String,
-        username: String,
-        email: String,
-        password: String
-    ) {
-        val updates = mutableMapOf<String, Any>(
-            "name" to name,
-            "username" to username,
-            "email" to email
-        )
-
-        // Simpan nama resource drawable untuk avatar
-        selectedAvatarResource?.let {
-            updates["profileImageResource"] = getDrawableResourceName(it)
-            updates["profileImageUrl"] = "" // Clear URL jika pakai drawable
-        }
-
-        // Simpan nama resource drawable untuk banner
-        selectedBannerResource?.let {
-            updates["bannerImageResource"] = getDrawableResourceName(it)
-            updates["bannerImageUrl"] = "" // Clear URL jika pakai drawable
-        }
-
-        if (password.isNotEmpty()) {
-            updates["password"] = password
-        }
-
-        db.collection("users").document(userId)
-            .update(updates)
-            .addOnSuccessListener {
-                if (username != originalUsername) {
-                    updateUsernameInPosts(userId, username)
-                } else {
-                    Toast.makeText(this, "Profile updated successfully", Toast.LENGTH_SHORT).show()
-                    setResult(RESULT_OK)
-                    finish()
-                }
-            }
-            .addOnFailureListener { e ->
-                Toast.makeText(this, "Failed to update profile: ${e.message}", Toast.LENGTH_SHORT).show()
-            }
-    }
-
-    private fun updateUsernameInPosts(userId: String, newUsername: String) {
-        val db = FirebaseFirestore.getInstance()
-
-        // Query semua posts milik user ini
-        db.collection("posts")
-            .whereEqualTo("userId", userId)
-            .get()
-            .addOnSuccessListener { querySnapshot ->
-                if (querySnapshot.isEmpty) {
-                    Toast.makeText(this, "Profile updated successfully", Toast.LENGTH_SHORT).show()
-                    setResult(RESULT_OK)
-                    finish()
-                    return@addOnSuccessListener
-                }
-
-                val batch = db.batch()
-
-                // Update username di setiap post
-                querySnapshot.documents.forEach { document ->
-                    batch.update(document.reference, "username", newUsername)
-                }
-
-                // Commit batch update
-                batch.commit()
-                    .addOnSuccessListener {
-                        Toast.makeText(this, "Profile updated successfully", Toast.LENGTH_SHORT).show()
-                        setResult(RESULT_OK)
-                        finish()
-                    }
-                    .addOnFailureListener { e ->
-                        Log.e("EditProfile", "Failed to update posts", e)
-                        Toast.makeText(this, "Profile updated, but failed to update posts", Toast.LENGTH_SHORT).show()
-                        setResult(RESULT_OK)
-                        finish()
-                    }
-            }
-            .addOnFailureListener { e ->
-                Log.e("EditProfile", "Failed to query posts", e)
-                Toast.makeText(this, "Profile updated successfully", Toast.LENGTH_SHORT).show()
-                setResult(RESULT_OK)
-                finish()
-            }
-    }
-
-    private fun uploadBannerOnly(
-        userId: String,
-        name: String,
-        username: String,
-        email: String,
-        password: String,
-        profileImageUrl: String
-    ) {
-        val storageRef = storage.reference
-        val bannerPath = "banner_images/$userId/banner_${System.currentTimeMillis()}.jpg"
-        val bannerRef = storageRef.child(bannerPath)
-
-        val compressedData = compressImage(selectedBannerImageUri!!, 1024)
-
-        bannerRef.putBytes(compressedData)
-            .continueWithTask { task ->
-                if (!task.isSuccessful) {
-                    task.exception?.let { throw it }
-                }
-                bannerRef.downloadUrl
-            }
-            .addOnSuccessListener { uri ->
-                updateUserData(userId, name, username, email, password, profileImageUrl, uri.toString())
-            }
-            .addOnFailureListener { e ->
-                Toast.makeText(this, "Failed to upload banner: ${e.message}", Toast.LENGTH_SHORT).show()
-            }
-    }
-
-    // Method untuk kompres gambar
-    private fun compressImage(uri: Uri, maxSizeKB: Int): ByteArray {
-        val inputStream = contentResolver.openInputStream(uri)
-        val bitmap = BitmapFactory.decodeStream(inputStream)
-        inputStream?.close()
-
-        var quality = 90
-        var outputStream = ByteArrayOutputStream()
-
-        // Compress sampai ukuran < maxSizeKB
-        do {
-            outputStream.reset()
-            bitmap.compress(Bitmap.CompressFormat.JPEG, quality, outputStream)
-            quality -= 10
-        } while (outputStream.size() / 1024 > maxSizeKB && quality > 0)
-
-        Log.d("EditProfile", "Compressed image size: ${outputStream.size() / 1024} KB")
-
-        return outputStream.toByteArray()
-    }
-
-
-    private fun updateUserData(userId: String, name: String, username: String, email: String, password: String,
-                               profileImageUrl: String?, bannerImageUrl: String?) {
-        val userUpdates = hashMapOf<String, Any>(
-            "name" to name,
-            "username" to username
-        )
-
-        profileImageUrl?.let { userUpdates["profileImageUrl"] = it }
-        bannerImageUrl?.let { userUpdates["bannerImageUrl"] = it }
-
-        db.collection("users").document(userId)
-            .update(userUpdates)
-            .addOnSuccessListener {
-                // Update posts di background
-                updatePostsUserInfo(
-                    userId = userId,
-                    name = name,
-                    username = username,
-                    profileImageUrl = profileImageUrl,
-                    bannerImageUrl = bannerImageUrl
-                )
-
-                // Update comments username
-                updateCommentsUserData(
-                    userId = userId,
-                    newUsername = username,
-                    oldUsername = originalUsername,
-                    profileImageUrl = profileImageUrl
-                )
-
-                val currentUser = auth.currentUser
-                if (email != currentUser?.email) {
-                    currentUser?.updateEmail(email)
-                        ?.addOnSuccessListener {
-                            updatePasswordIfNeeded(password)
-                        }
-                        ?.addOnFailureListener { e ->
-                            Toast.makeText(this, "Error updating email: ${e.message}", Toast.LENGTH_SHORT).show()
-                            updatePasswordIfNeeded(password)
-                        }
-                } else {
-                    updatePasswordIfNeeded(password)
-                }
-            }
-            .addOnFailureListener { e ->
-                Toast.makeText(this, "Error updating profile: ${e.message}", Toast.LENGTH_SHORT).show()
-            }
-    }
-
-    // Ganti fungsi updateCommentsUserData lama
-    private fun updateCommentsUserData(
-        userId: String,
-        newUsername: String,
-        oldUsername: String?,
-        profileImageUrl: String?
-    ) {
-        // Langkah 1: Query by userId
-        db.collectionGroup("comments")
-            .whereEqualTo("userId", userId)
-            .get()
-            .addOnSuccessListener { byUserId ->
-                if (byUserId.isEmpty && oldUsername != null && oldUsername != newUsername) {
-                    // Fallback: mungkin komentar lama belum punya userId -> cari by old username
-                    Log.w("EditProfile", "No comments by userId. Fallback by oldUsername=$oldUsername")
-                    fallbackUpdateByOldUsername(
-                        userId,
-                        newUsername,
-                        oldUsername,
-                        profileImageUrl
-                    )
-                } else {
-                    Log.d("EditProfile", "Comments (userId) found: ${byUserId.size()}")
-                    batchUpdateComments(byUserId.documents, userId, newUsername, profileImageUrl)
-                }
-            }
-            .addOnFailureListener {
-                Log.e("EditProfile", "Query comments by userId failed: ${it.message}", it)
-            }
-    }
-
-    private fun fallbackUpdateByOldUsername(
-        userId: String,
-        newUsername: String,
-        oldUsername: String,
-        profileImageUrl: String?
-    ) {
-        db.collectionGroup("comments")
-            .whereEqualTo("username", oldUsername)
-            .get()
-            .addOnSuccessListener { qs ->
-                Log.d("EditProfile", "Fallback comments found: ${qs.size()}")
-                if (!qs.isEmpty) {
-                    batchUpdateComments(qs.documents, userId, newUsername, profileImageUrl, addUserIdIfMissing = true)
-                }
-            }
-            .addOnFailureListener {
-                Log.e("EditProfile", "Fallback query failed: ${it.message}", it)
-            }
-    }
-
-    private fun batchUpdateComments(
-        docs: List<DocumentSnapshot>,
-        userId: String,
-        newUsername: String,
-        profileImageUrl: String?,
-        addUserIdIfMissing: Boolean = false
-    ) {
-        if (docs.isEmpty()) return
-        val batches = mutableListOf<WriteBatch>()
-        var batch = db.batch()
-        var count = 0
-        docs.forEach { doc ->
-            val updates = mutableMapOf<String, Any>(
-                "username" to newUsername
-            )
-            if (addUserIdIfMissing && !doc.contains("userId")) {
-                updates["userId"] = userId
-            }
-            profileImageUrl?.let { updates["profileImageUrl"] = it }
-
-            Log.d("EditProfile", "Updating comment: ${doc.reference.path} -> $updates")
-            batch.update(doc.reference, updates)
-            count++
-            if (count == 450) {
-                batches.add(batch)
-                batch = db.batch()
-                count = 0
-            }
-        }
-        if (count > 0) batches.add(batch)
-        commitCommentBatchesSequentially(batches.iterator())
-    }
-
 
     private fun commitCommentBatchesSequentially(batchIterator: Iterator<WriteBatch>) {
         if (!batchIterator.hasNext()) {
@@ -702,53 +423,6 @@ class EditProfilActivity : AppCompatActivity() {
             }
     }
 
-    private fun updatePostsUserInfo(
-        userId: String,
-        name: String,
-        username: String,
-        profileImageUrl: String?,
-        bannerImageUrl: String?
-    ) {
-        db.collection("posts")
-            .whereEqualTo("userId", userId)
-            .whereEqualTo("isAnonymous", false)
-            .get()
-            .addOnSuccessListener { querySnapshot ->
-                if (querySnapshot.isEmpty) return@addOnSuccessListener
-
-                val docs = querySnapshot.documents
-                val batches = mutableListOf<WriteBatch>()
-                var batch = db.batch()
-                var opCount = 0
-
-                docs.forEach { doc ->
-                    val ref = doc.reference
-                    val updates = mutableMapOf<String, Any>(
-                        "name" to name,
-                        "username" to username
-                    )
-                    profileImageUrl?.let { updates["profileImageUrl"] = it }
-                    bannerImageUrl?.let { updates["bannerImageUrl"] = it }
-
-                    batch.update(ref, updates)
-                    opCount++
-                    if (opCount == 450) {
-                        batches.add(batch)
-                        batch = db.batch()
-                        opCount = 0
-                    }
-                }
-                if (opCount > 0) batches.add(batch)
-
-                commitPostBatchesSequentially(batches.iterator())
-            }
-            .addOnFailureListener { e ->
-                Log.e("EditProfile", "Failed updating posts: ${e.message}")
-            }
-    }
-
-
-
     private fun commitPostBatchesSequentially(iterator: Iterator<WriteBatch>) {
         if (!iterator.hasNext()) return
         val batch = iterator.next()
@@ -759,28 +433,6 @@ class EditProfilActivity : AppCompatActivity() {
             .addOnFailureListener {
                 // Silent fail; user profile tetap terupdate
             }
-    }
-
-    private fun updatePasswordIfNeeded(password: String) {
-        val currentUser = auth.currentUser ?: return
-
-        if (password.isNotEmpty() && password != "********") {
-            currentUser.updatePassword(password)
-                .addOnSuccessListener {
-                    Toast.makeText(this, "Profile updated successfully", Toast.LENGTH_SHORT).show()
-                    setResult(RESULT_OK)
-                    finish()
-                }
-                .addOnFailureListener { e ->
-                    Toast.makeText(this, "Error updating password: ${e.message}", Toast.LENGTH_SHORT).show()
-                    setResult(RESULT_OK)
-                    finish()
-                }
-        } else {
-            Toast.makeText(this, "Profile updated successfully", Toast.LENGTH_SHORT).show()
-            setResult(RESULT_OK)
-            finish()
-        }
     }
 
     private fun saveProfileData(
