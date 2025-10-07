@@ -4,11 +4,10 @@ import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.widget.ImageView
+import android.widget.TextView
 import android.widget.Toast
-import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
+import androidx.core.widget.NestedScrollView
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
@@ -18,12 +17,6 @@ import com.google.firebase.firestore.ListenerRegistration
 import com.google.firebase.firestore.Query
 import com.innovape.hearuapp.data.model.Post
 import com.innovape.hearuapp.ui.adapter.PostAdapter
-import kotlin.collections.remove
-import kotlin.text.clear
-import kotlin.text.get
-import android.widget.TextView
-import androidx.core.widget.NestedScrollView
-import kotlin.collections.remove
 
 class ProfileActivity : AppCompatActivity(), Navbar.OnNavigationClickListener {
 

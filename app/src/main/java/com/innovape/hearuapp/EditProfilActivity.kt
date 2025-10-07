@@ -1,13 +1,10 @@
 package com.innovape.hearuapp
 
-import android.Manifest
 import android.app.Activity
-import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.Uri
-import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.widget.Button
@@ -15,11 +12,7 @@ import android.widget.EditText
 import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.Toast
-import androidx.activity.result.PickVisualMediaRequest
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.app.ActivityCompat
-import androidx.core.content.ContextCompat
 import com.bumptech.glide.Glide
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.DocumentSnapshot
@@ -27,11 +20,6 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.WriteBatch
 import com.google.firebase.storage.FirebaseStorage
 import java.io.ByteArrayOutputStream
-import java.io.File
-import kotlin.div
-import kotlin.text.get
-import kotlin.text.set
-import kotlin.toString
 
 class EditProfilActivity : AppCompatActivity() {
 
@@ -63,25 +51,6 @@ class EditProfilActivity : AppCompatActivity() {
     private var currentBannerResourceName: String? = null
     private var currentBannerImageUrl: String? = null
 
-    // Image picker launchers
-    private val profileImageLauncher = registerForActivityResult(
-        ActivityResultContracts.PickVisualMedia()
-    ) { uri ->
-        if (uri != null) {
-            selectedProfileImageUri = uri
-            ivProfile.setImageURI(uri)
-        }
-    }
-
-    private val bannerImageLauncher = registerForActivityResult(
-        ActivityResultContracts.PickVisualMedia()
-    ) { uri ->
-        if (uri != null) {
-            selectedBannerImageUri = uri
-            ivBanner.setImageURI(uri)
-        }
-    }
-
     private val PERMISSION_REQUEST_CODE = 100
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -108,36 +77,6 @@ class EditProfilActivity : AppCompatActivity() {
 
         // Load current user data
         loadCurrentUserData()
-    }
-
-    private fun checkAndRequestPermissions() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            // Android 13+
-            if (ContextCompat.checkSelfPermission(
-                    this,
-                    Manifest.permission.READ_MEDIA_IMAGES
-                ) != PackageManager.PERMISSION_GRANTED
-            ) {
-                ActivityCompat.requestPermissions(
-                    this,
-                    arrayOf(Manifest.permission.READ_MEDIA_IMAGES),
-                    PERMISSION_REQUEST_CODE
-                )
-            }
-        } else {
-            // Android 12 ke bawah
-            if (ContextCompat.checkSelfPermission(
-                    this,
-                    Manifest.permission.READ_EXTERNAL_STORAGE
-                ) != PackageManager.PERMISSION_GRANTED
-            ) {
-                ActivityCompat.requestPermissions(
-                    this,
-                    arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE),
-                    PERMISSION_REQUEST_CODE
-                )
-            }
-        }
     }
 
     override fun onRequestPermissionsResult(
@@ -559,240 +498,6 @@ class EditProfilActivity : AppCompatActivity() {
             }
     }
 
-
-    private fun uploadGalleryImages(
-        userId: String,
-        name: String,
-        username: String,
-        email: String,
-        password: String
-    ) {
-        var profileImageUrl: String? = null
-        var bannerImageUrl: String? = null
-        val storageRef = storage.reference
-        val uploadTasks = mutableListOf<com.google.android.gms.tasks.Task<Uri>>()
-
-        // Upload profile image dari galeri
-        if (selectedProfileImageUri != null) {
-            val profilePath = "profile_images/$userId/profile_${System.currentTimeMillis()}.jpg"
-            val profileRef = storageRef.child(profilePath)
-            val compressedData = compressImage(selectedProfileImageUri!!, 512)
-
-            val uploadTask = profileRef.putBytes(compressedData).continueWithTask { task ->
-                if (!task.isSuccessful) {
-                    task.exception?.let { throw it }
-                }
-                profileRef.downloadUrl
-            }
-            uploadTasks.add(uploadTask)
-        }
-
-        // Upload banner image dari galeri
-        if (selectedBannerImageUri != null) {
-            val bannerPath = "banner_images/$userId/banner_${System.currentTimeMillis()}.jpg"
-            val bannerRef = storageRef.child(bannerPath)
-            val compressedData = compressImage(selectedBannerImageUri!!, 1024)
-
-            val uploadTask = bannerRef.putBytes(compressedData).continueWithTask { task ->
-                if (!task.isSuccessful) {
-                    task.exception?.let { throw it }
-                }
-                bannerRef.downloadUrl
-            }
-            uploadTasks.add(uploadTask)
-        }
-
-        if (uploadTasks.isEmpty()) {
-            updateUserDataWithDrawables(userId, name, username, email, password)
-            return
-        }
-
-        com.google.android.gms.tasks.Tasks.whenAllSuccess<Uri>(uploadTasks)
-            .addOnSuccessListener { uris ->
-                var index = 0
-                if (selectedProfileImageUri != null) {
-                    profileImageUrl = uris[index].toString()
-                    index++
-                }
-                if (selectedBannerImageUri != null) {
-                    bannerImageUrl = uris[index].toString()
-                }
-
-                val updates = mutableMapOf<String, Any>(
-                    "name" to name,
-                    "username" to username,
-                    "email" to email
-                )
-
-                // Clear drawable resource jika upload dari galeri
-                if (selectedProfileImageUri != null) {
-                    updates["profileImageUrl"] = profileImageUrl!!
-                    updates["profileImageResource"] = ""
-                }
-
-                if (selectedBannerImageUri != null) {
-                    updates["bannerImageUrl"] = bannerImageUrl!!
-                    updates["bannerImageResource"] = ""
-                }
-
-                if (password.isNotEmpty()) {
-                    updates["password"] = password
-                }
-
-                db.collection("users").document(userId)
-                    .update(updates)
-                    .addOnSuccessListener {
-                        if (username != originalUsername) {
-                            updateUsernameInPosts(userId, username)
-                        } else {
-                            Toast.makeText(this, "Profile updated successfully", Toast.LENGTH_SHORT).show()
-                            setResult(RESULT_OK)
-                            finish()
-                        }
-                    }
-                    .addOnFailureListener { e ->
-                        Toast.makeText(this, "Failed to update profile: ${e.message}", Toast.LENGTH_SHORT).show()
-                    }
-            }
-            .addOnFailureListener { e ->
-                Toast.makeText(this, "Failed to upload images: ${e.message}", Toast.LENGTH_SHORT).show()
-            }
-    }
-
-
-    private fun uploadImagesWithAvatars(
-        userId: String,
-        name: String,
-        username: String,
-        email: String,
-        password: String
-    ) {
-        var profileImageUrl: String? = null
-        var bannerImageUrl: String? = null
-        val storageRef = storage.reference
-
-        val uploadTasks = mutableListOf<com.google.android.gms.tasks.Task<Uri>>()
-
-        // Upload profile image or avatar
-        if (selectedAvatarResource != null) {
-            val bitmap = BitmapFactory.decodeResource(resources, selectedAvatarResource!!)
-            val outputStream = ByteArrayOutputStream()
-            bitmap.compress(Bitmap.CompressFormat.PNG, 100, outputStream)
-            val data = outputStream.toByteArray()
-
-            val profilePath = "profile_images/$userId/avatar_${System.currentTimeMillis()}.png"
-            val profileRef = storageRef.child(profilePath)
-
-            val uploadTask = profileRef.putBytes(data).continueWithTask { task ->
-                if (!task.isSuccessful) {
-                    task.exception?.let { throw it }
-                }
-                profileRef.downloadUrl
-            }
-            uploadTasks.add(uploadTask)
-        } else if (selectedProfileImageUri != null) {
-            val profilePath = "profile_images/$userId/profile_${System.currentTimeMillis()}.jpg"
-            val profileRef = storageRef.child(profilePath)
-            val compressedData = compressImage(selectedProfileImageUri!!, 1024)
-
-            val uploadTask = profileRef.putBytes(compressedData).continueWithTask { task ->
-                if (!task.isSuccessful) {
-                    task.exception?.let { throw it }
-                }
-                profileRef.downloadUrl
-            }
-            uploadTasks.add(uploadTask)
-        }
-
-        // Upload banner image or preset
-        if (selectedBannerResource != null) {
-            val bitmap = BitmapFactory.decodeResource(resources, selectedBannerResource!!)
-            val outputStream = ByteArrayOutputStream()
-            bitmap.compress(Bitmap.CompressFormat.JPEG, 90, outputStream)
-            val data = outputStream.toByteArray()
-
-            val bannerPath = "banner_images/$userId/banner_${System.currentTimeMillis()}.jpg"
-            val bannerRef = storageRef.child(bannerPath)
-
-            val uploadTask = bannerRef.putBytes(data).continueWithTask { task ->
-                if (!task.isSuccessful) {
-                    task.exception?.let { throw it }
-                }
-                bannerRef.downloadUrl
-            }
-            uploadTasks.add(uploadTask)
-        } else if (selectedBannerImageUri != null) {
-            val bannerPath = "banner_images/$userId/banner_${System.currentTimeMillis()}.jpg"
-            val bannerRef = storageRef.child(bannerPath)
-            val compressedData = compressImage(selectedBannerImageUri!!, 1024)
-
-            val uploadTask = bannerRef.putBytes(compressedData).continueWithTask { task ->
-                if (!task.isSuccessful) {
-                    task.exception?.let { throw it }
-                }
-                bannerRef.downloadUrl
-            }
-            uploadTasks.add(uploadTask)
-        }
-
-        // Wait for all uploads to complete
-        com.google.android.gms.tasks.Tasks.whenAllSuccess<Uri>(uploadTasks)
-            .addOnSuccessListener { uris ->
-                var index = 0
-                if (selectedAvatarResource != null || selectedProfileImageUri != null) {
-                    profileImageUrl = uris[index].toString()
-                    index++
-                }
-                if (selectedBannerResource != null || selectedBannerImageUri != null) {
-                    bannerImageUrl = uris[index].toString()
-                }
-
-                updateUserData(userId, name, username, email, password, profileImageUrl, bannerImageUrl)
-            }
-            .addOnFailureListener { e ->
-                Toast.makeText(this, "Failed to upload images: ${e.message}", Toast.LENGTH_SHORT).show()
-            }
-    }
-
-    private fun uploadAvatarAsImage(
-        userId: String,
-        avatarResource: Int,
-        name: String,
-        username: String,
-        email: String,
-        password: String
-    ) {
-        val bitmap = BitmapFactory.decodeResource(resources, avatarResource)
-        val outputStream = ByteArrayOutputStream()
-        bitmap.compress(Bitmap.CompressFormat.PNG, 100, outputStream)
-        val data = outputStream.toByteArray()
-
-        val storageRef = storage.reference
-        val profilePath = "profile_images/$userId/avatar_${System.currentTimeMillis()}.png"
-        val profileRef = storageRef.child(profilePath)
-
-        profileRef.putBytes(data)
-            .continueWithTask { task ->
-                if (!task.isSuccessful) {
-                    task.exception?.let { throw it }
-                }
-                profileRef.downloadUrl
-            }
-            .addOnSuccessListener { uri ->
-                val profileImageUrl = uri.toString()
-
-                // Handle banner upload jika ada
-                if (selectedBannerImageUri != null) {
-                    uploadBannerOnly(userId, name, username, email, password, profileImageUrl)
-                } else {
-                    updateUserData(userId, name, username, email, password, profileImageUrl, null)
-                }
-            }
-            .addOnFailureListener { e ->
-                Toast.makeText(this, "Failed to upload avatar: ${e.message}", Toast.LENGTH_SHORT).show()
-            }
-    }
-
     private fun uploadBannerOnly(
         userId: String,
         name: String,
@@ -819,105 +524,6 @@ class EditProfilActivity : AppCompatActivity() {
             }
             .addOnFailureListener { e ->
                 Toast.makeText(this, "Failed to upload banner: ${e.message}", Toast.LENGTH_SHORT).show()
-            }
-    }
-
-    private fun uploadImages(
-        userId: String,
-        name: String,
-        username: String,
-        email: String,
-        password: String
-    ) {
-        Log.d("EditProfile", "Starting upload for user: $userId")
-
-        val storageRoot = storage.reference
-        val uploadTasks = mutableListOf<com.google.android.gms.tasks.Task<String>>()
-
-        // Upload compressed profile image
-        selectedProfileImageUri?.let { uri ->
-            val path = "profile_images/$userId/profile_${System.currentTimeMillis()}.jpg"
-            Log.d("EditProfile", "Uploading profile to: $path")
-            val ref = storageRoot.child(path)
-
-            // Kompres gambar
-            val compressedData = compressImage(uri, 500) // Max 500KB
-
-            val uploadTask = ref.putBytes(compressedData)
-                .addOnProgressListener { taskSnapshot ->
-                    val progress = (100.0 * taskSnapshot.bytesTransferred) / taskSnapshot.totalByteCount
-                    Log.d("EditProfile", "Profile upload: $progress%")
-                }
-                .continueWithTask { task ->
-                    if (!task.isSuccessful) {
-                        Log.e("EditProfile", "Profile upload failed", task.exception)
-                        task.exception?.let { throw it }
-                    }
-                    ref.downloadUrl
-                }
-                .continueWith { task ->
-                    val url = task.result.toString()
-                    Log.d("EditProfile", "Profile URL: $url")
-                    url
-                }
-            uploadTasks.add(uploadTask)
-        }
-
-        // Upload compressed banner image
-        selectedBannerImageUri?.let { uri ->
-            val path = "banner_images/$userId/banner_${System.currentTimeMillis()}.jpg"
-            Log.d("EditProfile", "Uploading banner to: $path")
-            val ref = storageRoot.child(path)
-
-            // Kompres gambar (banner bisa lebih besar)
-            val compressedData = compressImage(uri, 1024) // Max 1MB
-
-            val uploadTask = ref.putBytes(compressedData)
-                .addOnProgressListener { taskSnapshot ->
-                    val progress = (100.0 * taskSnapshot.bytesTransferred) / taskSnapshot.totalByteCount
-                    Log.d("EditProfile", "Banner upload: $progress%")
-                }
-                .continueWithTask { task ->
-                    if (!task.isSuccessful) {
-                        Log.e("EditProfile", "Banner upload failed", task.exception)
-                        task.exception?.let { throw it }
-                    }
-                    ref.downloadUrl
-                }
-                .continueWith { task ->
-                    val url = task.result.toString()
-                    Log.d("EditProfile", "Banner URL: $url")
-                    url
-                }
-            uploadTasks.add(uploadTask)
-        }
-
-        if (uploadTasks.isEmpty()) {
-            updateUserData(userId, name, username, email, password, null, null)
-            return
-        }
-
-        // Wait for all uploads
-        com.google.android.gms.tasks.Tasks.whenAllSuccess<String>(uploadTasks)
-            .addOnSuccessListener { results ->
-                Log.d("EditProfile", "All uploads successful")
-                var resultIndex = 0
-                var profileImageUrl: String? = null
-                var bannerImageUrl: String? = null
-
-                if (selectedProfileImageUri != null) {
-                    profileImageUrl = results[resultIndex]
-                    resultIndex++
-                }
-                if (selectedBannerImageUri != null) {
-                    bannerImageUrl = results[resultIndex]
-                }
-
-                updateUserData(userId, name, username, email, password, profileImageUrl, bannerImageUrl)
-            }
-            .addOnFailureListener { e ->
-                Log.e("EditProfile", "Upload failed", e)
-                Toast.makeText(this, "Upload failed: ${e.message}", Toast.LENGTH_SHORT).show()
             }
     }
 
@@ -1175,43 +781,6 @@ class EditProfilActivity : AppCompatActivity() {
             setResult(RESULT_OK)
             finish()
         }
-    }
-
-    private fun updateAllUserPosts(
-        newProfileResourceName: String?,
-        newProfileImageUrl: String?,
-        newName: String,
-        newUsername: String
-    ) {
-        val currentUser = auth.currentUser ?: return
-
-        db.collection("posts")
-            .whereEqualTo("userId", currentUser.uid)
-            .get()
-            .addOnSuccessListener { querySnapshot ->
-                val batch = db.batch()
-
-                for (document in querySnapshot.documents) {
-                    val postRef = db.collection("posts").document(document.id)
-
-                    val updates = hashMapOf<String, Any?>(
-                        "profileImageResource" to (newProfileResourceName ?: ""),
-                        "profileImageUrl" to (newProfileImageUrl ?: ""),
-                        "name" to newName,
-                        "username" to newUsername
-                    )
-
-                    batch.update(postRef, updates)
-                }
-
-                batch.commit()
-                    .addOnSuccessListener {
-                        Log.d("EditProfilActivity", "All posts updated successfully")
-                    }
-                    .addOnFailureListener { e ->
-                        Log.e("EditProfilActivity", "Error updating posts", e)
-                    }
-            }
     }
 
     private fun saveProfileData(
